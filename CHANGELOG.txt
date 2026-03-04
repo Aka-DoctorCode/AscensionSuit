@@ -1,5 +1,5 @@
-<h1>V01</h1>
+<h1>V03</h1>
 <ul>
-    <li>Initial release</li>
-    <li>All libraries transfered from AscensionQoL</li>
+    <li>.toc version updated</li>
+    <li>Keeping libraries up to date</li>
 </ul>
