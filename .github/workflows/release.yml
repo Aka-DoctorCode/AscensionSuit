@@ -28,7 +28,7 @@ jobs:
                   git config user.email "github-actions[bot]@users.noreply.github.com"
                   
                   # Generate tag based on date and time (e.g., v2024.03.22.1430)
-                  NEW_TAG="v$(date +'%Y.%m.%d.%H%M')"
+                  NEW_TAG="V$(date +'%Y.%m.%d.%H%M')"
                   echo "Updating suite to version $NEW_TAG"
                   
                   # Create and push the tag
