@@ -1,4 +1,4 @@
 <h1>@project-version@</h1>
 <ul>
-    <li>Maitenance release</li>
+    <li>UI factory has been added as a library for me to use the same apperance for all of my add ons UI</li>
 </ul>
