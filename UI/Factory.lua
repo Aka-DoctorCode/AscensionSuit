@@ -4,7 +4,7 @@
 -- File: Factory.lua
 -- Version: @project-version@
 -------------------------------------------------------------------------------
--- Copyright (c) 2025-2026 Aka-DoctorCode. All Rights Reserved.
+-- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
 --
 -- This software and its source code are the exclusive property of the author.
 -- No part of this file may be copied, modified, redistributed, or used in
@@ -222,7 +222,7 @@ end
 function Context:createCheckbox(args)
     local parent, text, tooltip = args.parent, args.text, args.tooltip
     local getter, setter, yOffset, xOffset = args.getter, args.setter, args.yOffset, args.xOffset
-    
+
     local checkboxSize = self.styles.dimensions.checkboxSize or 24
     local checkboxSpacing = self.styles.dimensions.checkboxSpacing or 24
     local labelColor = self.styles.colors.textLight
@@ -260,7 +260,7 @@ function Context:createSlider(args)
     local parent, text, minVal, maxVal = args.parent, args.text, args.minVal, args.maxVal
     local step, getter, setter = args.step or 1, args.getter, args.setter
     local width, yOffset, xOffset = args.width or self.styles.dimensions.sliderWidth, args.yOffset, args.xOffset
-    
+
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
     local sliderName = "AscensionSuitSlider_" .. tostring(math.random(1000000, 9999999))
     local slider = CreateFrame("Slider", sliderName, parent, "OptionsSliderTemplate")
@@ -321,10 +321,12 @@ function Context:createSlider(args)
         self:ClearFocus()
     end)
 
-    local btnMinus = createStepButton(controlsFrame, "-", btnSize, function() updateValue(slider:GetValue() - step) end, self.styles)
+    local btnMinus = createStepButton(controlsFrame, "-", btnSize, function() updateValue(slider:GetValue() - step) end,
+        self.styles)
     btnMinus:SetPoint("RIGHT", editBox, "LEFT", -12, 0)
 
-    local btnPlus = createStepButton(controlsFrame, "+", btnSize, function() updateValue(slider:GetValue() + step) end, self.styles)
+    local btnPlus = createStepButton(controlsFrame, "+", btnSize, function() updateValue(slider:GetValue() + step) end,
+        self.styles)
     btnPlus:SetPoint("LEFT", editBox, "RIGHT", 12, 0)
 
     slider:SetScript("OnValueChanged", function(_, value)
@@ -343,7 +345,7 @@ function Context:createStepper(args)
     local parent, text, minVal, maxVal = args.parent, args.text, args.minVal, args.maxVal
     local step, getter, setter = args.step or 1, args.getter, args.setter
     local width, yOffset, xOffset = args.width or 120, args.yOffset, args.xOffset
-    
+
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
     local val = getter() or minVal
 
@@ -381,10 +383,12 @@ function Context:createStepper(args)
         self:ClearFocus()
     end)
 
-    local btnMinus = createStepButton(controlsFrame, "-", btnSize, function() updateValue(editBox, getter() - step) end, self.styles)
+    local btnMinus = createStepButton(controlsFrame, "-", btnSize, function() updateValue(editBox, getter() - step) end,
+        self.styles)
     btnMinus:SetPoint("RIGHT", editBox, "LEFT", -8, 0)
 
-    local btnPlus = createStepButton(controlsFrame, "+", btnSize, function() updateValue(editBox, getter() + step) end, self.styles)
+    local btnPlus = createStepButton(controlsFrame, "+", btnSize, function() updateValue(editBox, getter() + step) end,
+        self.styles)
     btnPlus:SetPoint("LEFT", editBox, "RIGHT", 8, 0)
 
     local totalDescent = (labelString:GetHeight() or 14) + 8 + btnSize + 16
@@ -394,12 +398,12 @@ end
 function Context:createColorPicker(args)
     local parent, text, getter, setter = args.parent, args.text, args.getter, args.setter
     local yOffset, xOffset, hasAlpha = args.yOffset, args.xOffset, args.hasAlpha
-    
+
     local basePadding = xOffset or self.styles.dimensions.contentPadding or 16
     local actualX = basePadding - 4
     local pickerSize = self.styles.dimensions.colorPickerSize or 20
     local pickerSpacing = self.styles.dimensions.colorPickerSpacing or 24
-    
+
     local button = CreateFrame("Button", nil, parent)
     button:SetSize(pickerSize, pickerSize)
     button:SetPoint("TOPLEFT", actualX, yOffset)
@@ -445,7 +449,9 @@ function Context:createColorPicker(args)
             cancelFunc = function() colorCallback({ r or 1, g or 1, b or 1, currentAlpha }) end,
             hasOpacity = hasAlpha,
             opacity = currentAlpha,
-            r = r or 1, g = g or 1, b = b or 1
+            r = r or 1,
+            g = g or 1,
+            b = b or 1
         }
 
         if colorPicker and colorPicker.SetupColorPickerAndShow then
@@ -466,7 +472,7 @@ end
 function Context:createDropdown(args)
     local parent, text, options = args.parent, args.text, args.options
     local getter, setter, width, yOffset, xOffset = args.getter, args.setter, args.width, args.yOffset, args.xOffset
-    
+
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
     local dropWidth = width or self.styles.dimensions.dropdownWidth or 140
     local dropHeight = self.styles.dimensions.dropdownHeight or 44
@@ -593,15 +599,15 @@ function Context:createScrollPanel(args)
     local parent = args.parent
     local scrollName = "AscensionSuitScrollPanel_" .. tostring(math.random(1000000, 9999999))
     local scrollFrame = CreateFrame("ScrollFrame", scrollName, parent, "UIPanelScrollFrameTemplate")
-    
+
     scrollFrame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
     scrollFrame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -15, 0)
 
     local content = CreateFrame("Frame", nil, scrollFrame)
     local initialWidth = scrollFrame:GetWidth()
     if initialWidth == 0 then initialWidth = 600 end
-    content:SetSize(initialWidth, 1) 
-    
+    content:SetSize(initialWidth, 1)
+
     scrollFrame:SetScrollChild(content)
     scrollFrame:EnableMouseWheel(true)
     scrollFrame.ScrollBar = _G[scrollName .. "ScrollBar"]
@@ -620,18 +626,18 @@ function Context:createScrollPanel(args)
         if newVal > maxVal then newVal = maxVal end
         bar:SetValue(newVal)
     end)
-    
+
     local scrollBar = scrollFrame.ScrollBar
     if scrollBar then
         if scrollBar.ScrollUpButton then scrollBar.ScrollUpButton:SetAlpha(0.7) end
         if scrollBar.ScrollDownButton then scrollBar.ScrollDownButton:SetAlpha(0.7) end
-        
+
         local thumb = scrollBar:GetThumbTexture()
         if thumb then
             local r, g, b = unpack(self.styles.colors.surfaceHighlight)
             thumb:SetVertexColor(r, g, b, 0.8)
         end
-        
+
         local regions = { scrollBar:GetRegions() }
         for _, region in ipairs(regions) do
             if region:IsObjectType("Texture") and region ~= thumb then
@@ -646,7 +652,7 @@ end
 function Context:createInput(args)
     local parent, text = args.parent, args.text
     local onEnterPressed, width, yOffset, xOffset = args.onEnterPressed, args.width, args.yOffset, args.xOffset
-    
+
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
     local actualWidth = width or 200
 
@@ -676,7 +682,7 @@ end
 function Context:createButton(args)
     local parent, text, onClick = args.parent, args.text, args.onClick
     local width, height, yOffset, xOffset = args.width, args.height, args.yOffset, args.xOffset
-    
+
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
     local actualWidth = width or 120
     local actualHeight = height or 28
@@ -758,10 +764,10 @@ function Context:createTabbedInterface(parent, tabNames, buildFuncs, initialInde
         local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
         local xOffset = (styles.dimensions.sidebarWidth - styles.dimensions.tabWidth) / 2
         local yOffset = -56 - ((idx - 1) * (styles.dimensions.tabHeight + styles.dimensions.tabSpacing))
-        
+
         btn:SetSize(styles.dimensions.tabWidth, styles.dimensions.tabHeight)
         btn:SetPoint("TOPLEFT", xOffset, yOffset)
-        
+
         local accent = btn:CreateTexture(nil, "OVERLAY")
         accent:SetWidth(styles.dimensions.sidebarAccentWidth)
         accent:SetPoint("TOPLEFT", -xOffset, 0)
@@ -769,7 +775,7 @@ function Context:createTabbedInterface(parent, tabNames, buildFuncs, initialInde
         accent:SetColorTexture(unpack(styles.colors.primary))
         accent:Hide()
         btn.accent = accent
-        
+
         btn:SetBackdrop({
             bgFile = styles.files.bgFile,
             edgeFile = styles.files.edgeFile,
@@ -854,13 +860,13 @@ end
 
 function lib.LayoutModel:label(elementID, text, xOffset, color)
     local targetParent = self.currentSection or self.parent
-    local l, newY = self.ctx:createLabel({ 
-        parent = targetParent, 
-        anchorFrame = self.parent, 
-        text = text, 
-        yOffset = self.y, 
+    local l, newY = self.ctx:createLabel({
+        parent = targetParent,
+        anchorFrame = self.parent,
+        text = text,
+        yOffset = self.y,
         xOffset = xOffset,
-        color = color 
+        color = color
     })
     self.y = newY
     return l
@@ -868,8 +874,13 @@ end
 
 function lib.LayoutModel:checkbox(elementID, text, tooltip, getter, setter, xOffset)
     local cb, newY = self.ctx:createCheckbox({
-        parent = self.parent, text = text, tooltip = tooltip,
-        getter = getter, setter = setter, yOffset = self.y, xOffset = xOffset
+        parent = self.parent,
+        text = text,
+        tooltip = tooltip,
+        getter = getter,
+        setter = setter,
+        yOffset = self.y,
+        xOffset = xOffset
     })
     self.y = newY
     return cb
@@ -877,8 +888,16 @@ end
 
 function lib.LayoutModel:slider(elementID, text, minVal, maxVal, step, getter, setter, width, xOffset)
     local s, newY = self.ctx:createSlider({
-        parent = self.parent, text = text, minVal = minVal, maxVal = maxVal, step = step,
-        getter = getter, setter = setter, width = width, yOffset = self.y, xOffset = xOffset
+        parent = self.parent,
+        text = text,
+        minVal = minVal,
+        maxVal = maxVal,
+        step = step,
+        getter = getter,
+        setter = setter,
+        width = width,
+        yOffset = self.y,
+        xOffset = xOffset
     })
     self.y = newY
     return s
@@ -886,8 +905,16 @@ end
 
 function lib.LayoutModel:stepper(elementID, text, minVal, maxVal, step, getter, setter, width, xOffset)
     local s, newY = self.ctx:createStepper({
-        parent = self.parent, text = text, minVal = minVal, maxVal = maxVal, step = step,
-        getter = getter, setter = setter, width = width, yOffset = self.y, xOffset = xOffset
+        parent = self.parent,
+        text = text,
+        minVal = minVal,
+        maxVal = maxVal,
+        step = step,
+        getter = getter,
+        setter = setter,
+        width = width,
+        yOffset = self.y,
+        xOffset = xOffset
     })
     self.y = newY
     return s
@@ -895,8 +922,13 @@ end
 
 function lib.LayoutModel:colorPicker(elementID, text, getter, setter, xOffset, hasAlpha)
     local cp, newY = self.ctx:createColorPicker({
-        parent = self.parent, text = text, getter = getter, setter = setter,
-        yOffset = self.y, xOffset = xOffset, hasAlpha = hasAlpha
+        parent = self.parent,
+        text = text,
+        getter = getter,
+        setter = setter,
+        yOffset = self.y,
+        xOffset = xOffset,
+        hasAlpha = hasAlpha
     })
     self.y = newY
     return cp
@@ -904,8 +936,14 @@ end
 
 function lib.LayoutModel:dropdown(elementID, text, options, getter, setter, width, xOffset)
     local dd, newY = self.ctx:createDropdown({
-        parent = self.parent, text = text, options = options,
-        getter = getter, setter = setter, width = width, yOffset = self.y, xOffset = xOffset
+        parent = self.parent,
+        text = text,
+        options = options,
+        getter = getter,
+        setter = setter,
+        width = width,
+        yOffset = self.y,
+        xOffset = xOffset
     })
     self.y = newY
     return dd
@@ -913,8 +951,12 @@ end
 
 function lib.LayoutModel:input(elementID, text, width, xOffset, onEnterPressed)
     local inp, newY = self.ctx:createInput({
-        parent = self.parent, text = text,
-        width = width, xOffset = xOffset, yOffset = self.y, onEnterPressed = onEnterPressed
+        parent = self.parent,
+        text = text,
+        width = width,
+        xOffset = xOffset,
+        yOffset = self.y,
+        onEnterPressed = onEnterPressed
     })
     self.y = newY
     return inp
@@ -922,8 +964,13 @@ end
 
 function lib.LayoutModel:button(elementID, text, width, height, xOffset, onClick)
     local btn, newY = self.ctx:createButton({
-        parent = self.parent, text = text,
-        width = width, height = height, xOffset = xOffset, yOffset = self.y, onClick = onClick
+        parent = self.parent,
+        text = text,
+        width = width,
+        height = height,
+        xOffset = xOffset,
+        yOffset = self.y,
+        onClick = onClick
     })
     self.y = newY
     return btn
@@ -934,9 +981,12 @@ function lib.LayoutModel:beginSection(xOffset, width)
     local actualX = xOffset or 8
     self.sectionStartY = self.y + 4
     section:SetPoint("TOPLEFT", self.parent, "TOPLEFT", actualX, self.sectionStartY)
-    
-    if width then section:SetWidth(width)
-    else section:SetPoint("RIGHT", self.parent, "RIGHT", -8, 0) end
+
+    if width then
+        section:SetWidth(width)
+    else
+        section:SetPoint("RIGHT", self.parent, "RIGHT", -8, 0)
+    end
 
     section:SetBackdrop({
         bgFile = self.ctx.styles.files.bgFile,
@@ -952,7 +1002,7 @@ end
 
 function lib.LayoutModel:endSection()
     if self.currentSection then
-        self.y = self.y + 8 
+        self.y = self.y + 8
         local totalHeight = self.sectionStartY - self.y
         self.currentSection:SetHeight(totalHeight)
         self.currentSection = nil

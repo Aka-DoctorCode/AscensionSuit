@@ -2,7 +2,7 @@
 ## Title: Ascension Suit
 ## Notes: The central brain for all Ascension add ons libraries.
 ## Author: Aka-DoctorCode
-## Version: @project-version@
+## Version: V2026.04.13.1924
 ## IconTexture: Interface\AddOns\AscensionSuit\Media\AkaDoctorCode.png
 ## X-Curse-Project-ID: 1402263
 # X-Wago-ID:
