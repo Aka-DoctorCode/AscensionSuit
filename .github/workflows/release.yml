@@ -4,46 +4,39 @@ permissions:
   contents: write
 
 on:
-    push:
-        tags:
-            - '*'
-    repository_dispatch:
-        types:
-            - update-suite
+  push:
+    tags:
+      - '*'
+  repository_dispatch:
+    types:
+      - update-suite
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-            - name: Checkout Code
-              uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-            - name: Create Automatic Tag
-              if: github.event_name == 'repository_dispatch'
-              run: |
-                  # Set git identity
-                  git config user.name "github-actions[bot]"
-                  git config user.email "github-actions[bot]@users.noreply.github.com"
-                  
-                  # Generate tag based on date and time (e.g., v2024.03.22.1430)
-                  NEW_TAG="V$(date +'%Y.%m.%d.%H%M')"
-                  echo "Updating suite to version $NEW_TAG"
-                  
-                  # Create and push the tag
-                  git tag $NEW_TAG
-                  git push origin $NEW_TAG
-              env:
-                  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+      - name: Create Automatic Tag
+        if: github.event_name == 'repository_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            - name: Build and Deploy
-              uses: BigWigsMods/packager@v2
-              env:
-                  CF_API_KEY: ${{ secrets.CF_API_KEY }}
-                  GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
-            
-            - name: Create Package
-              uses: BigWigsMods/packager@master
-              env:
-                WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+          NEW_TAG="V$(date +'%Y.%m.%d.%H%M')"
+          echo "Updating suite to version $NEW_TAG"
+
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package and Deploy
+        uses: BigWigsMods/packager@v2
+        env:
+            # CF_API_KEY: ${{ secrets.CF_API_KEY }}
+            WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+            GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
