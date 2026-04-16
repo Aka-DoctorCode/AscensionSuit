@@ -520,7 +520,8 @@ function Context:createDropdown(args)
     local list = CreateFrame("Frame", nil, dropdown, "BackdropTemplate")
     list:SetPoint("TOPLEFT", dropdown, "BOTTOMLEFT", 0, -2)
     list:SetWidth(dropWidth)
-    list:SetFrameStrata("TOOLTIP")
+    list:SetFrameStrata("FULLSCREEN_DIALOG")
+    list:SetFrameLevel(100)
     list:Hide()
     list:SetBackdrop({
         bgFile = self.styles.files.bgFile,
@@ -535,7 +536,7 @@ function Context:createDropdown(args)
         if not _G.AscensionSuitDropdownBlocker then
             local blocker = CreateFrame("Button", "AscensionSuitDropdownBlocker", _G.UIParent)
             blocker:SetAllPoints()
-            blocker:SetFrameStrata("FULLSCREEN_DIALOG")
+            blocker:SetFrameStrata("DIALOG")
             blocker:Hide()
             blocker:SetScript("OnClick", closeActiveDropdown)
         end
@@ -544,7 +545,8 @@ function Context:createDropdown(args)
             closeActiveDropdown()
         else
             closeActiveDropdown()
-            list:SetFrameStrata("TOOLTIP")
+            list:SetFrameStrata("FULLSCREEN_DIALOG")
+            list:SetFrameLevel(100)
             list:Show()
             activeDropdownList = list
             _G.AscensionSuitDropdownBlocker:Show()
