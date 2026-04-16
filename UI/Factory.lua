@@ -517,11 +517,9 @@ function Context:createDropdown(args)
     arrow:SetTexture(self.styles.files.arrow)
     arrow:SetDesaturated(true)
 
-    local list = CreateFrame("Frame", nil, dropdown, "BackdropTemplate")
+    local list = CreateFrame("Frame", nil, _G.UIParent, "BackdropTemplate")
     list:SetPoint("TOPLEFT", dropdown, "BOTTOMLEFT", 0, -2)
     list:SetWidth(dropWidth)
-    list:SetFrameStrata("FULLSCREEN_DIALOG")
-    list:SetFrameLevel(100)
     list:Hide()
     list:SetBackdrop({
         bgFile = self.styles.files.bgFile,
@@ -536,7 +534,8 @@ function Context:createDropdown(args)
         if not _G.AscensionSuitDropdownBlocker then
             local blocker = CreateFrame("Button", "AscensionSuitDropdownBlocker", _G.UIParent)
             blocker:SetAllPoints()
-            blocker:SetFrameStrata("DIALOG")
+            blocker:SetFrameStrata("FULLSCREEN_DIALOG")
+            blocker:SetFrameLevel(100)
             blocker:Hide()
             blocker:SetScript("OnClick", closeActiveDropdown)
         end
@@ -545,11 +544,19 @@ function Context:createDropdown(args)
             closeActiveDropdown()
         else
             closeActiveDropdown()
-            list:SetFrameStrata("FULLSCREEN_DIALOG")
-            list:SetFrameLevel(100)
+            
+            local blocker = _G.AscensionSuitDropdownBlocker
+            blocker:SetFrameStrata("FULLSCREEN_DIALOG")
+            blocker:SetFrameLevel(100)
+            blocker:Show()
+            
+            list:SetFrameStrata("TOOLTIP")
+            list:SetFrameLevel(200)
+            list:ClearAllPoints()
+            list:SetPoint("TOPLEFT", dropdown, "BOTTOMLEFT", 0, -2)
             list:Show()
+            
             activeDropdownList = list
-            _G.AscensionSuitDropdownBlocker:Show()
         end
     end)
 
