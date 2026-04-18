@@ -77,7 +77,26 @@ local function closeActiveDropdown()
         activeDropdownList:Hide()
     end
     activeDropdownList = nil
-    if _G.AscensionSuitDropdownBlocker then _G.AscensionSuitDropdownBlocker:Hide() end
+    local blocker = _G["AscensionSuitDropdownBlocker"]
+    if blocker then blocker:Hide() end
+end
+
+local function setTooltip(frame, title, description)
+    if not description or description == "" then return end
+    local oldEnter = frame:GetScript("OnEnter")
+    local oldLeave = frame:GetScript("OnLeave")
+
+    frame:SetScript("OnEnter", function(self)
+        if oldEnter then oldEnter(self) end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(title or "Option Info", 1, 1, 1)
+        GameTooltip:AddLine(description, 1, 0.82, 0, true)
+        GameTooltip:Show()
+    end)
+    frame:SetScript("OnLeave", function(self)
+        if oldLeave then oldLeave(self) end
+        GameTooltip_Hide()
+    end)
 end
 
 -------------------------------------------------------------------------------
@@ -257,8 +276,8 @@ function Context:createCheckbox(args)
 end
 
 function Context:createSlider(args)
-    local parent, text, minVal, maxVal = args.parent, args.text, args.minVal, args.maxVal
-    local step, getter, setter = args.step or 1, args.getter, args.setter
+    local parent, text, minVal, maxVal = args.parent, args.text, args.minVal or 0, args.maxVal or 100
+    local step, getter, setter, tooltip = args.step or 1, args.getter, args.setter, args.tooltip
     local width, yOffset, xOffset = args.width or self.styles.dimensions.sliderWidth, args.yOffset, args.xOffset
 
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
@@ -296,9 +315,9 @@ function Context:createSlider(args)
     local function updateValue(inputValue)
         local numericValue = tonumber(inputValue)
         if numericValue then
-            numericValue = math.max(minVal, math.min(maxVal, numericValue))
-            slider:SetValue(numericValue)
-            setter(numericValue)
+            local finalVal = math.max(minVal, math.min(maxVal, numericValue))
+            slider:SetValue(finalVal)
+            setter(finalVal)
         end
     end
 
@@ -337,13 +356,15 @@ function Context:createSlider(args)
         setter(self:GetValue())
     end)
 
+    if tooltip then setTooltip(slider, text, tooltip) end
+
     local nextY = yOffset - (slider:GetHeight() + 4 + controlsFrame:GetHeight() + 36)
     return slider, nextY
 end
 
 function Context:createStepper(args)
-    local parent, text, minVal, maxVal = args.parent, args.text, args.minVal, args.maxVal
-    local step, getter, setter = args.step or 1, args.getter, args.setter
+    local parent, text, minVal, maxVal = args.parent, args.text, args.minVal or 0, args.maxVal or 100
+    local step, getter, setter, tooltip = args.step or 1, args.getter, args.setter, args.tooltip
     local width, yOffset, xOffset = args.width or 120, args.yOffset, args.xOffset
 
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
@@ -391,13 +412,15 @@ function Context:createStepper(args)
         self.styles)
     btnPlus:SetPoint("LEFT", editBox, "RIGHT", 8, 0)
 
+    if tooltip then setTooltip(controlsFrame, text, tooltip) end
+
     local totalDescent = (labelString:GetHeight() or 14) + 8 + btnSize + 16
     return controlsFrame, yOffset - totalDescent
 end
 
 function Context:createColorPicker(args)
     local parent, text, getter, setter = args.parent, args.text, args.getter, args.setter
-    local yOffset, xOffset, hasAlpha = args.yOffset, args.xOffset, args.hasAlpha
+    local yOffset, xOffset, hasAlpha, tooltip = args.yOffset, args.xOffset, args.hasAlpha, args.tooltip
 
     local basePadding = xOffset or self.styles.dimensions.contentPadding or 16
     local actualX = basePadding - 4
@@ -466,12 +489,15 @@ function Context:createColorPicker(args)
             colorPicker:Show()
         end
     end)
+
+    if tooltip then setTooltip(button, text, tooltip) end
+
     return button, yOffset - pickerSpacing
 end
 
 function Context:createDropdown(args)
     local parent, text, options = args.parent, args.text, args.options
-    local getter, setter, width, yOffset, xOffset = args.getter, args.setter, args.width, args.yOffset, args.xOffset
+    local getter, setter, width, yOffset, xOffset, tooltip = args.getter, args.setter, args.width, args.yOffset, args.xOffset, args.tooltip
 
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
     local dropWidth = width or self.styles.dimensions.dropdownWidth or 140
@@ -531,7 +557,7 @@ function Context:createDropdown(args)
     list:SetBackdropBorderColor(unpack(self.styles.colors.surfaceHighlight))
 
     dropdown:SetScript("OnClick", function()
-        if not _G.AscensionSuitDropdownBlocker then
+        if not _G["AscensionSuitDropdownBlocker"] then
             local blocker = CreateFrame("Button", "AscensionSuitDropdownBlocker", _G.UIParent)
             blocker:SetAllPoints()
             blocker:SetFrameStrata("FULLSCREEN_DIALOG")
@@ -545,7 +571,7 @@ function Context:createDropdown(args)
         else
             closeActiveDropdown()
             
-            local blocker = _G.AscensionSuitDropdownBlocker
+            local blocker = _G["AscensionSuitDropdownBlocker"]
             blocker:SetFrameStrata("FULLSCREEN_DIALOG")
             blocker:SetFrameLevel(100)
             blocker:Show()
@@ -600,6 +626,8 @@ function Context:createDropdown(args)
             closeActiveDropdown()
         end)
     end
+
+    if tooltip then setTooltip(dropdown, text, tooltip) end
 
     return frame, yOffset - (dropHeight + 16)
 end
@@ -659,7 +687,7 @@ function Context:createScrollPanel(args)
 end
 
 function Context:createInput(args)
-    local parent, text = args.parent, args.text
+    local parent, text, tooltip = args.parent, args.text, args.tooltip
     local onEnterPressed, width, yOffset, xOffset = args.onEnterPressed, args.width, args.yOffset, args.xOffset
 
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
@@ -685,11 +713,13 @@ function Context:createInput(args)
         self:ClearFocus()
     end)
 
+    if tooltip then setTooltip(frame, text, tooltip) end
+
     return frame, yOffset - 50
 end
 
 function Context:createButton(args)
-    local parent, text, onClick = args.parent, args.text, args.onClick
+    local parent, text, onClick, tooltip = args.parent, args.text, args.onClick, args.tooltip
     local width, height, yOffset, xOffset = args.width, args.height, args.yOffset, args.xOffset
 
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
@@ -730,6 +760,8 @@ function Context:createButton(args)
     btn:SetScript("OnMouseDown", function(self) self.text:SetPoint("CENTER", 1, -1) end)
     btn:SetScript("OnMouseUp", function(self) self.text:SetPoint("CENTER", 0, 0) end)
     btn:SetScript("OnClick", function() if onClick then onClick() end end)
+
+    if tooltip then setTooltip(btn, text, tooltip) end
 
     return btn, yOffset - (actualHeight + 10)
 end
@@ -895,10 +927,14 @@ function lib.LayoutModel:checkbox(elementID, text, tooltip, getter, setter, xOff
     return cb
 end
 
-function lib.LayoutModel:slider(elementID, text, minVal, maxVal, step, getter, setter, width, xOffset)
+function lib.LayoutModel:slider(elementID, text, tooltip, minVal, maxVal, step, getter, setter, width, xOffset)
+    if tooltip ~= nil and type(tooltip) ~= "string" then
+        xOffset, width, setter, getter, step, maxVal, minVal, tooltip = width, setter, getter, step, maxVal, minVal, tooltip, nil
+    end
     local s, newY = self.ctx:createSlider({
         parent = self.parent,
         text = text,
+        tooltip = tooltip,
         minVal = minVal,
         maxVal = maxVal,
         step = step,
@@ -912,10 +948,14 @@ function lib.LayoutModel:slider(elementID, text, minVal, maxVal, step, getter, s
     return s
 end
 
-function lib.LayoutModel:stepper(elementID, text, minVal, maxVal, step, getter, setter, width, xOffset)
+function lib.LayoutModel:stepper(elementID, text, tooltip, minVal, maxVal, step, getter, setter, width, xOffset)
+    if tooltip ~= nil and type(tooltip) ~= "string" then
+        xOffset, width, setter, getter, step, maxVal, minVal, tooltip = width, setter, getter, step, maxVal, minVal, tooltip, nil
+    end
     local s, newY = self.ctx:createStepper({
         parent = self.parent,
         text = text,
+        tooltip = tooltip,
         minVal = minVal,
         maxVal = maxVal,
         step = step,
@@ -929,10 +969,14 @@ function lib.LayoutModel:stepper(elementID, text, minVal, maxVal, step, getter, 
     return s
 end
 
-function lib.LayoutModel:colorPicker(elementID, text, getter, setter, xOffset, hasAlpha)
+function lib.LayoutModel:colorPicker(elementID, text, tooltip, getter, setter, xOffset, hasAlpha)
+    if tooltip ~= nil and type(tooltip) ~= "string" then
+        hasAlpha, xOffset, setter, getter, tooltip = xOffset, getter, setter, tooltip, nil
+    end
     local cp, newY = self.ctx:createColorPicker({
         parent = self.parent,
         text = text,
+        tooltip = tooltip,
         getter = getter,
         setter = setter,
         yOffset = self.y,
@@ -943,10 +987,14 @@ function lib.LayoutModel:colorPicker(elementID, text, getter, setter, xOffset, h
     return cp
 end
 
-function lib.LayoutModel:dropdown(elementID, text, options, getter, setter, width, xOffset)
+function lib.LayoutModel:dropdown(elementID, text, tooltip, options, getter, setter, width, xOffset)
+    if tooltip ~= nil and type(tooltip) ~= "string" then
+        xOffset, width, setter, getter, options, tooltip = width, setter, getter, options, tooltip, nil
+    end
     local dd, newY = self.ctx:createDropdown({
         parent = self.parent,
         text = text,
+        tooltip = tooltip,
         options = options,
         getter = getter,
         setter = setter,
@@ -958,10 +1006,14 @@ function lib.LayoutModel:dropdown(elementID, text, options, getter, setter, widt
     return dd
 end
 
-function lib.LayoutModel:input(elementID, text, width, xOffset, onEnterPressed)
+function lib.LayoutModel:input(elementID, text, tooltip, width, xOffset, onEnterPressed)
+    if type(tooltip) ~= "string" then
+        onEnterPressed, xOffset, width, tooltip = xOffset, width, tooltip, nil
+    end
     local inp, newY = self.ctx:createInput({
         parent = self.parent,
         text = text,
+        tooltip = tooltip,
         width = width,
         xOffset = xOffset,
         yOffset = self.y,
@@ -971,10 +1023,14 @@ function lib.LayoutModel:input(elementID, text, width, xOffset, onEnterPressed)
     return inp
 end
 
-function lib.LayoutModel:button(elementID, text, width, height, xOffset, onClick)
+function lib.LayoutModel:button(elementID, text, tooltip, width, height, xOffset, onClick)
+    if tooltip ~= nil and type(tooltip) ~= "string" then
+        onClick, xOffset, height, width, tooltip = xOffset, height, width, tooltip, nil
+    end
     local btn, newY = self.ctx:createButton({
         parent = self.parent,
         text = text,
+        tooltip = tooltip,
         width = width,
         height = height,
         xOffset = xOffset,
