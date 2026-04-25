@@ -1,4 +1,6 @@
 <h1>@project-version@</h1>
 <ul>
-    <li>.toc update</li>
+    <li>Change: packaer udated to node24</li>
+    <li>Change: Updated to versioning format of the auto trigger of add ons under the Suit.</li>
+    <li>Change: tooltip and options reset</li>
 </ul>

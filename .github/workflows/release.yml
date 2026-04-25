@@ -11,6 +11,9 @@ on:
     types:
       - update-suite
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -20,21 +23,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Create Automatic Tag
+      # ----- Solo para dispatch: preparamos changelog y empaquetamos con versión personalizada -----
+      - name: Prepare Changelog for Triggered Update
         if: github.event_name == 'repository_dispatch'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          echo "Update for changes to ${{ github.event.client_payload.trigger || 'TriggerAddon' }}" > changelog.txt
 
-          NEW_TAG="V$(date +'%Y.%m.%d.%H%M')"
-          echo "Updating suite to version $NEW_TAG"
-
-          git tag $NEW_TAG
-          git push origin $NEW_TAG
+      - name: Package from Triggered Update
+        if: github.event_name == 'repository_dispatch'
+        uses: BigWigsMods/packager@v2
+        with:
+          args: "-e changelog.txt"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.event.client_payload.version }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Package and Deploy
+      # ----- Solo para push de tags: empaquetado normal -----
+      - name: Package from Tag
+        if: github.event_name != 'repository_dispatch'
         uses: BigWigsMods/packager@v2
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
