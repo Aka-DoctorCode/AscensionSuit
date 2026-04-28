@@ -33,7 +33,7 @@ jobs:
         if: github.event_name == 'repository_dispatch'
         uses: BigWigsMods/packager@v2
         with:
-          args: "-e changelog.txt"
+          args: "-r -e changelog.txt"
         env:
           VERSION: ${{ github.event.client_payload.version }}
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
