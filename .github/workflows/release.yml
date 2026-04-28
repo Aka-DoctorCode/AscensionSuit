@@ -42,7 +42,7 @@ jobs:
           git tag $NEW_TAG
           git push origin $NEW_TAG
 
-          echo "Update for changes to ${{ github.event.client_payload.trigger || 'TriggerAddon' }} (${{ github.event.client_payload.version || 'latest' }})" > CHANGELOG.txt
+          echo "Update for changes to ${{ github.event.client_payload.trigger || 'TriggerAddon' }} ${{ github.event.client_payload.version || 'latest' }}" > CHANGELOG.txt
 
       # 2. Empaquetar y Desplegar
       - name: Package and Deploy
