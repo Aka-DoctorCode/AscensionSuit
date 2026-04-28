@@ -35,7 +35,7 @@ jobs:
         with:
           args: "-e changelog.txt -r"
         env:
-          VERSION: ${{ github.event.client_payload.version }}
+          VERSION: "${{ github.event.client_payload.trigger }}-${{ github.event.client_payload.version }}"
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
