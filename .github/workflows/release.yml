@@ -23,47 +23,42 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Step to calculate the next VN+1 version and prepare the changelog
-      - name: Prepare Version and Changelog
+      # 1. Calculamos el siguiente VN+1 y creamos el Tag físico en Git
+      - name: Create Automatic VN+1 Tag
         if: github.event_name == 'repository_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Fetch all tags to ensure we find the latest one
-          git fetch --tags
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Find the latest tag that matches the V(number) pattern (e.g., V13)
+          # Traer tags actuales
+          git fetch --tags
+
+          # Buscar el último tag que sea V + número (ej: V13)
           LATEST_TAG=$(git describe --tags --abbrev=0 --match "V[0-9]*" 2>/dev/null || echo "V0")
           
-          # Extract the numeric part (V13 -> 13)
+          # Extraer el número y sumarle 1
           VERSION_NUM=${LATEST_TAG#V}
-          
-          # Increment the version number (13 -> 14)
           NEXT_NUM=$((VERSION_NUM + 1))
           NEW_TAG="V$NEXT_NUM"
           
-          # Export to environment for subsequent steps
-          echo "RELEASE_VERSION=$NEW_TAG" >> $GITHUB_ENV
+          echo "Ultima versión detectada: $LATEST_TAG"
+          echo "Nueva versión calculada: $NEW_TAG"
+
+          # CREAR EL TAG FÍSICAMENTE (Esto es lo que hace que sea Stable)
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
           
-          # Create a custom changelog referencing the child project
+          # Preparamos el changelog para el empaquetador
           echo "Update for changes to ${{ github.event.client_payload.trigger || 'TriggerAddon' }} (${{ github.event.client_payload.version || 'latest' }})" > changelog.txt
 
-      # Packaging logic for repository_dispatch (forced stable release)
-      - name: Package from Triggered Update
-        if: github.event_name == 'repository_dispatch'
+      # 2. Empaquetar (Si es Dispatch, usará el Tag que acabamos de crear y empujar)
+      - name: Package and Deploy
         uses: BigWigsMods/packager@v2
         with:
-          # -e uses the custom changelog, -r forces 'Stable' release status
-          args: "-e changelog.txt -r"
+          args: "-e changelog.txt"
         env:
-          # Using the clean VN+1 version string to avoid Alpha tagging
-          VERSION: ${{ env.RELEASE_VERSION }}
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
-
-      # Standard packaging logic for manual tag pushes
-      - name: Package from Tag
-        if: github.event_name != 'repository_dispatch'
-        uses: BigWigsMods/packager@v2
-        env:
-          CF_API_KEY: ${{ secrets.CF_API_KEY }}
-          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
