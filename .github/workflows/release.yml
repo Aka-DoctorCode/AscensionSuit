@@ -23,7 +23,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 1. Calculamos el siguiente VN+1 y creamos el Tag físico en Git
+      # 1. Calculamos el tag y preparamos el entorno
       - name: Create Automatic VN+1 Tag
         if: github.event_name == 'repository_dispatch'
         env:
@@ -32,32 +32,23 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Traer tags actuales
           git fetch --tags
 
-          # Buscar el último tag que sea V + número (ej: V13)
           LATEST_TAG=$(git describe --tags --abbrev=0 --match "V[0-9]*" 2>/dev/null || echo "V0")
-          
-          # Extraer el número y sumarle 1
           VERSION_NUM=${LATEST_TAG#V}
           NEXT_NUM=$((VERSION_NUM + 1))
           NEW_TAG="V$NEXT_NUM"
           
-          echo "Ultima versión detectada: $LATEST_TAG"
-          echo "Nueva versión calculada: $NEW_TAG"
-
-          # CREAR EL TAG FÍSICAMENTE (Esto es lo que hace que sea Stable)
           git tag $NEW_TAG
           git push origin $NEW_TAG
-          
-          # Preparamos el changelog para el empaquetador
-          echo "Update for changes to ${{ github.event.client_payload.trigger || 'TriggerAddon' }} (${{ github.event.client_payload.version || 'latest' }})" > changelog.txt
 
-      # 2. Empaquetar (Si es Dispatch, usará el Tag que acabamos de crear y empujar)
+          echo "Update for changes to ${{ github.event.client_payload.trigger || 'TriggerAddon' }} (${{ github.event.client_payload.version || 'latest' }})" > CHANGELOG.txt
+
+      # 2. Empaquetar y Desplegar
       - name: Package and Deploy
         uses: BigWigsMods/packager@v2
         with:
-          args: "-e changelog.txt"
+          args: "-r"
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
