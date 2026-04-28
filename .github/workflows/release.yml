@@ -23,28 +23,47 @@ jobs:
         with:
           fetch-depth: 0
 
-      # ----- Solo para dispatch: preparamos changelog y empaquetamos con versión personalizada -----
-      - name: Prepare Changelog for Triggered Update
+      # Step to calculate the next VN+1 version and prepare the changelog
+      - name: Prepare Version and Changelog
         if: github.event_name == 'repository_dispatch'
         run: |
-          echo "Update for changes to ${{ github.event.client_payload.trigger || 'TriggerAddon' }}" > changelog.txt
+          # Fetch all tags to ensure we find the latest one
+          git fetch --tags
+          
+          # Find the latest tag that matches the V(number) pattern (e.g., V13)
+          LATEST_TAG=$(git describe --tags --abbrev=0 --match "V[0-9]*" 2>/dev/null || echo "V0")
+          
+          # Extract the numeric part (V13 -> 13)
+          VERSION_NUM=${LATEST_TAG#V}
+          
+          # Increment the version number (13 -> 14)
+          NEXT_NUM=$((VERSION_NUM + 1))
+          NEW_TAG="V$NEXT_NUM"
+          
+          # Export to environment for subsequent steps
+          echo "RELEASE_VERSION=$NEW_TAG" >> $GITHUB_ENV
+          
+          # Create a custom changelog referencing the child project
+          echo "Update for changes to ${{ github.event.client_payload.trigger || 'TriggerAddon' }} (${{ github.event.client_payload.version || 'latest' }})" > changelog.txt
 
+      # Packaging logic for repository_dispatch (forced stable release)
       - name: Package from Triggered Update
         if: github.event_name == 'repository_dispatch'
         uses: BigWigsMods/packager@v2
         with:
+          # -e uses the custom changelog, -r forces 'Stable' release status
           args: "-e changelog.txt -r"
         env:
-          VERSION: "${{ github.event.client_payload.trigger }}-${{ github.event.client_payload.version }}"
+          # Using the clean VN+1 version string to avoid Alpha tagging
+          VERSION: ${{ env.RELEASE_VERSION }}
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
 
-      # ----- Solo para push de tags: empaquetado normal -----
+      # Standard packaging logic for manual tag pushes
       - name: Package from Tag
         if: github.event_name != 'repository_dispatch'
         uses: BigWigsMods/packager@v2
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
-          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
