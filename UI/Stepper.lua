@@ -1,0 +1,88 @@
+-------------------------------------------------------------------------------
+-- Project: AscensionSuit
+-- Author: Aka-DoctorCode
+-- File: Stepper.lua
+-------------------------------------------------------------------------------
+---@diagnostic disable: undefined-global, undefined-field, inject-field
+
+local MAJOR = "AscensionSuit-UI"
+local lib = LibStub:GetLibrary(MAJOR)
+if not lib then return end
+
+local Context = lib.Context
+if not Context then return end
+
+function Context:createStepper(args)
+    if not args or not args.parent then return nil, 0 end
+
+    local parent = args.parent
+    local text = args.text
+    local minVal = args.minVal or 0
+    local maxVal = args.maxVal or 100
+    local step = args.step or 1
+    local getter = args.getter
+    local setter = args.setter
+    local tooltip = args.tooltip
+    local width = args.width or 120
+    local yOffset = args.yOffset or 0
+    local xOffset = args.xOffset
+
+    local actualX = xOffset or self.styles.dimensions.contentPadding or 16
+    local val = minVal
+    if getter then val = getter() or minVal end
+    local function updateValue(editBox, inputValue)
+        local numericValue = tonumber(inputValue)
+        if numericValue then
+            numericValue = math.max(minVal, math.min(maxVal, numericValue))
+            editBox:SetText(tostring(math.floor(numericValue * 100) / 100))
+            if setter then setter(numericValue) end
+        else
+            if getter then
+                editBox:SetText(tostring(math.floor(getter() * 100) / 100))
+            end
+        end
+    end
+
+    local btnSize = self.styles.dimensions.editBoxHeight or 28
+    local controlsFrame = CreateFrame("Frame", nil, parent)
+    controlsFrame:SetPoint("TOPLEFT", actualX, yOffset - 4)
+    controlsFrame:SetSize(width, btnSize)
+
+    local editBox = CreateFrame("EditBox", nil, controlsFrame, "InputBoxTemplate")
+    editBox:SetSize(btnSize + 20, btnSize + 10)
+    editBox:SetPoint("CENTER", controlsFrame, "CENTER", 0, 0)
+    editBox:SetAutoFocus(false)
+    editBox:SetJustifyH("CENTER")
+    editBox:SetFontObject(self.styles.fonts.label)
+    editBox:SetText(tostring(math.floor(val * 100) / 100))
+
+    editBox:SetScript("OnEnterPressed", function(self)
+        updateValue(self, self:GetText())
+        self:ClearFocus()
+    end)
+
+    local btnMinus = self:createStepButton({
+        parent = controlsFrame,
+        symbol = "-",
+        size = btnSize,
+        onClick = function() updateValue(editBox, (getter and getter() or val) - step) end,
+        styles = self.styles
+    })
+    if btnMinus then btnMinus:SetPoint("RIGHT", editBox, "LEFT", -8, 0) end
+
+    local btnPlus = self:createStepButton({
+        parent = controlsFrame,
+        symbol = "+",
+        size = btnSize,
+        onClick = function() updateValue(editBox, (getter and getter() or val) + step) end,
+        styles = self.styles
+    })
+    if btnPlus then btnPlus:SetPoint("LEFT", editBox, "RIGHT", 8, 0) end
+
+    if tooltip and lib.UX and lib.UX.attachTooltip then
+        lib.UX:attachTooltip(controlsFrame, text, tooltip)
+    end
+
+    local totalDescent = btnSize + 16 + 4
+    return controlsFrame, yOffset - totalDescent
+end
