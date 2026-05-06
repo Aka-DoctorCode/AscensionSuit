@@ -48,18 +48,18 @@ function Context:createStepper(args)
     controlsFrame:SetPoint("TOPLEFT", actualX, yOffset - 4)
     controlsFrame:SetSize(width, btnSize)
 
-    local editBox = CreateFrame("EditBox", nil, controlsFrame, "InputBoxTemplate")
-    editBox:SetSize(btnSize + 20, btnSize + 10)
-    editBox:SetPoint("CENTER", controlsFrame, "CENTER", 0, 0)
-    editBox:SetAutoFocus(false)
+    local inputWidth = 40
+    local inputFrame = self:createInput({
+        parent = controlsFrame,
+        width = inputWidth,
+        yOffset = 0,
+        xOffset = (width - inputWidth) / 2,
+        onEnterPressed = function(val) updateValue(controlsFrame.editBox, val) end
+    })
+    local editBox = inputFrame.editBox
+    controlsFrame.editBox = editBox
     editBox:SetJustifyH("CENTER")
-    editBox:SetFontObject(self.styles.fonts.label)
     editBox:SetText(tostring(math.floor(val * 100) / 100))
-
-    editBox:SetScript("OnEnterPressed", function(self)
-        updateValue(self, self:GetText())
-        self:ClearFocus()
-    end)
 
     local btnMinus = self:createStepButton({
         parent = controlsFrame,
@@ -68,7 +68,7 @@ function Context:createStepper(args)
         onClick = function() updateValue(editBox, (getter and getter() or val) - step) end,
         styles = self.styles
     })
-    if btnMinus then btnMinus:SetPoint("RIGHT", editBox, "LEFT", -8, 0) end
+    if btnMinus then btnMinus:SetPoint("RIGHT", editBox, "LEFT", -4, 0) end
 
     local btnPlus = self:createStepButton({
         parent = controlsFrame,
@@ -77,7 +77,7 @@ function Context:createStepper(args)
         onClick = function() updateValue(editBox, (getter and getter() or val) + step) end,
         styles = self.styles
     })
-    if btnPlus then btnPlus:SetPoint("LEFT", editBox, "RIGHT", 8, 0) end
+    if btnPlus then btnPlus:SetPoint("LEFT", editBox, "RIGHT", 4, 0) end
 
     if tooltip and lib.UX and lib.UX.attachTooltip then
         lib.UX:attachTooltip(controlsFrame, text, tooltip)

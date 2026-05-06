@@ -12,22 +12,67 @@ if not lib then return end
 local UX = lib.UX or {}
 lib.UX = UX
 
+-- Persistent custom tooltip frame
+local function getCustomTooltip()
+    if lib.customTooltip then return lib.customTooltip end
+
+    local f = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    f:SetClampedToScreen(true)
+    f:SetFrameStrata("TOOLTIP")
+    f:Hide()
+
+    -- Premium look: Deep dark background with no transparency
+    f:SetBackdrop({
+        bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        edgeSize = 12,
+        insets   = { left = 3, right = 3, top = 3, bottom = 3 }
+    })
+    f:SetBackdropColor(0.02, 0.02, 0.03, 1.0) -- 100% Alpha
+    f:SetBackdropBorderColor(0.4, 0.4, 0.5, 1.0)
+
+    -- Larger Title
+    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("TOPLEFT", 12, -12)
+    title:SetJustifyH("LEFT")
+    f.title = title
+
+    -- Larger Description
+    local desc = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    desc:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
+    desc:SetWidth(280)
+    desc:SetJustifyH("LEFT")
+    desc:SetSpacing(3)
+    f.desc = desc
+
+    lib.customTooltip = f
+    return f
+end
+
 function UX:attachTooltip(frame, title, description)
     if not frame or not description or description == "" then return end
     
+    local tooltip = getCustomTooltip()
     local oldEnter = frame:GetScript("OnEnter")
     local oldLeave = frame:GetScript("OnLeave")
 
     frame:SetScript("OnEnter", function(self)
         if oldEnter then oldEnter(self) end
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(title or "Option Info", 1, 1, 1)
-        GameTooltip:AddLine(description, 1, 0.82, 0, true)
-        GameTooltip:Show()
+        
+        tooltip.title:SetText(title or "Option Info")
+        tooltip.desc:SetText(description)
+        
+        -- Adjust height based on content
+        local contentHeight = tooltip.title:GetHeight() + tooltip.desc:GetHeight() + 32
+        tooltip:SetSize(304, contentHeight)
+        
+        tooltip:ClearAllPoints()
+        tooltip:SetPoint("BOTTOMLEFT", self, "TOPRIGHT", 10, 0)
+        tooltip:Show()
     end)
     
     frame:SetScript("OnLeave", function(self)
         if oldLeave then oldLeave(self) end
-        GameTooltip_Hide()
+        tooltip:Hide()
     end)
 end

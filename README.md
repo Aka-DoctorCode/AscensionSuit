@@ -127,6 +127,9 @@ All colour values are RGBA arrays with values between `0` and `1`.
 | `sidebarHover`   | `{0.2, 0.2, 0.2, 0.5}`            | Sidebar tab hover               |
 | `sidebarAccent`  | `{0.0, 0.48, 1.0, 0.95}`          | Sidebar accent                  |
 | `sidebarActive`  | `{0.0, 0.4, 1.0, 0.2}`            | Active tab background           |
+| `success`        | `{0.06, 0.72, 0.50, 1.0}`         | Success / Positive action       |
+| `warning`        | `{0.96, 0.61, 0.04, 1.0}`         | Warning / Caution               |
+| `error`          | `{0.93, 0.26, 0.26, 1.0}`         | Error / Negative action         |
 
 ### Files
 Texture paths used for backdrops and edges.
@@ -145,22 +148,23 @@ All sizes are in pixels (px).
 | `sidebarWidth`       | 160     | Tabbed interface                |
 | `sidebarAccentWidth` | 3       | Tab accent line                 |
 | `contentPadding`     | 16      | Horizontal margin for content   |
-| `checkboxSize`       | 36      | Checkbox box size               |
-| `checkboxSpacing`    | 40      | Vertical space after checkbox   |
+| `checkboxSize`       | 28      | Checkbox box size               |
+| `checkboxSpacing`    | 36      | Vertical space after checkbox   |
 | `sliderWidth`        | 160     | Slider track width              |
 | `dropdownWidth`      | 160     | Dropdown button width           |
-| `dropdownHeight`     | 48      | Total dropdown frame height     |
+| `dropdownHeight`     | 44      | Total dropdown frame height     |
 | `tabWidth`           | 144     | Sidebar tab width               |
 | `tabHeight`          | 30      | Sidebar tab height              |
 | `tabSpacing`         | 6       | Gap between tabs                |
 | `editBoxHeight`      | 28      | EditBox / step button height    |
-| `colorPickerSize`    | 24      | Colour picker button size       |
-| `colorPickerSpacing` | 32      | Vertical space after colour picker|
-| `headerSpacing`      | 32      | (unused in code)                |
+| `colorPickerSize`    | 22      | Colour picker button size       |
+| `colorPickerSpacing` | 28      | Vertical space after colour picker|
+| `headerSpacing`      | 32      | Gap between headers             |
 | `labelSpacing`       | 16      | Vertical space after label      |
-| `sliderSpacing`      | 56      | (unused in code)                |
-| `buttonHeight`       | 24      | (unused in code)                |
-| `backdropEdgeSize`   | 8       | (unused in code)                |
+| `sliderSpacing`      | 64      | Vertical space for slider block |
+| `titleTop`           | -16     | Page title top offset           |
+| `titleLeft`          | 16      | Page title left offset          |
+| `backdropEdgeSize`   | 8       | Border thickness                |
 
 ### Fonts
 Standard WoW font objects used by the components.
@@ -275,7 +279,7 @@ Premium slider with an edit box, plus/minus step buttons, and a label.
 | `yOffset` | number   | No       | `-16`                            | Vertical offset                                  |
 | `xOffset` | number   | No       | `styles.dimensions.contentPadding` | Left margin                                   |
 
-**Returns**: `sliderFrame, nextY` – the container frame holding the slider, edit box, and step buttons, and the calculated next Y position.
+**Returns**: `sliderFrame, nextY` – the container frame holding the slider and its integrated **Stepper** (EditBox + step buttons), and the calculated next Y position (`yOffset - 85`).
 
 ---
 
@@ -526,7 +530,7 @@ All utility functions are accessed via `lib.UX`. They are lightweight helpers fo
 | Method | Description |
 | ------ | ----------- |
 | `showContextMenu(parent, options, config)` | Shows a context menu at the cursor. If `config` is provided, it automatically adds **Lock/Unlock** and **Reset Position** buttons. |
-| `attachTooltip(frame, title, description)` | Shows a `GameTooltip` on mouse enter. Wraps existing OnEnter/OnLeave scripts. |
+| `attachTooltip(frame, title, description)` | Shows a premium **custom tooltip frame** (100% opaque, larger fonts) on mouse enter. Wraps existing OnEnter/OnLeave scripts. |
 | `makeMovable(frame)` | Enables dragging with the left mouse button. |
 | `makeResizable(frame, minWidth, minHeight)` | Adds a resize grip at the bottom‑right corner. |
 | `makeClosableWithEscape(frame)` | Hides the frame when Escape is pressed. |
@@ -642,7 +646,7 @@ SlashCmdList["MYADDON"] = function() f:Show() end
 ## Dependencies and Load Order
 
 - **LibStub** must be loaded before any other file (it is included in the `.toc`).
-- `Factory.lua` registers `"AscensionSuit-UI"` with LibStub and must be loaded before all UI/UX modules.
+- `AscensionSuit.lua` registers `"AscensionSuit-UI"` with LibStub and must be loaded before all UI/UX modules.
 - All other `.lua` files under `UI/`, `UX/`, and `Integration/` can be loaded in any order.
 - The `.toc` also includes several Ace3 libraries (`AceAddon-3.0`, `AceEvent-3.0`, etc.). These are available for other addons that share this directory but are **not required** by Ascension Suit.
 

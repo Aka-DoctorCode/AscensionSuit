@@ -39,13 +39,14 @@ function Context:createDropdown(args)
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
     local dropWidth = width or self.styles.dimensions.dropdownWidth or 140
     local dropHeight = self.styles.dimensions.dropdownHeight or 44
+    local btnHeight = self.styles.dimensions.buttonHeight or 28
 
     local frame = CreateFrame("Frame", nil, parent)
-    frame:SetSize(dropWidth, dropHeight - 20)
+    frame:SetSize(dropWidth, dropHeight - 16)
     frame:SetPoint("TOPLEFT", actualX, yOffset - 4)
 
     local dropdown = CreateFrame("Button", nil, frame, "BackdropTemplate")
-    dropdown:SetSize(dropWidth, 24)
+    dropdown:SetSize(dropWidth, btnHeight)
     dropdown:SetPoint("TOPLEFT", 0, 0)
     dropdown:SetBackdrop({
         bgFile = self.styles.files.bgFile,
@@ -61,6 +62,17 @@ function Context:createDropdown(args)
     dropdownText:SetPoint("LEFT", 10, 0)
     dropdownText:SetPoint("RIGHT", -20, 0)
     dropdownText:SetJustifyH("LEFT")
+
+    local styles = self.styles
+    dropdown:SetScript("OnEnter", function(self)
+        if styles.colors.primary then self:SetBackdropColor(unpack(styles.colors.primary)) end
+        if styles.colors.textLight then self:SetBackdropBorderColor(unpack(styles.colors.textLight)) end
+    end)
+
+    dropdown:SetScript("OnLeave", function(self)
+        if styles.colors.surfaceHighlight then self:SetBackdropColor(unpack(styles.colors.surfaceHighlight)) end
+        if styles.colors.blackDetail then self:SetBackdropBorderColor(unpack(styles.colors.blackDetail)) end
+    end)
 
     local function getLabel(val)
         for _, opt in ipairs(options) do
