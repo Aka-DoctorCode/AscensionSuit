@@ -23,13 +23,19 @@ function Context:createLabel(args)
     local xOffset = args.xOffset
     local anchorFrame = args.anchorFrame
 
-    local color = args.color or self.styles.colors.textLight
+    local color = args.color
+    if not color and self.styles and self.styles.colors then
+        color = self.styles.colors.textLight
+    end
     local labelSpacing = self.styles.dimensions.labelSpacing or 16
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
 
     local label = parent:CreateFontString(nil, "OVERLAY", self.styles.fonts.label)
     label:SetPoint("TOPLEFT", anchorFrame or parent, "TOPLEFT", actualX, yOffset)
     label:SetText(text)
+    
+    local font, size, flags = label:GetFont()
+    label:SetFont(font, size, "OUTLINE")
     
     if color then
         label:SetTextColor(unpack(color))

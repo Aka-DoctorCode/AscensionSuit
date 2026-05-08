@@ -3,7 +3,7 @@
 ## Notes: My own UI/UX library. Also store third party libraries and shared files that my Ascension Add ons use in a single place.
 ## Author: Aka-DoctorCode
 ## Category: Library
-## Version: V18
+## Version: @project-version@
 ## IconTexture: Interface\AddOns\AscensionSuit\Media\AkaDoctorCode.png
 ## X-Curse-Project-ID: 1402263
 ## X-Wago-ID: qKQmnnKx
@@ -27,6 +27,7 @@ UI\Input.lua
 UI\Button.lua
 UI\CloseButton.lua
 UI\TabbedInterface.lua
+UI\MainFrame.lua
 UI\LayoutModel.lua
 UX\Utilities.lua
 UX\Hover.lua
@@ -50,3 +51,4 @@ Libs\LibDualSpec-1.0\LibDualSpec-1.0.lua
 Libs\LibSharedMedia-3.0\lib.xml
 Libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
 Libs\AceTimer-3.0\AceTimer-3.0.xml
+MockUI.lua

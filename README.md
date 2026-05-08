@@ -56,6 +56,7 @@ It is built on **LibStub** and provides a complete design system, factory method
    - [createButton](#createbutton)
    - [createCloseButton](#createclosebutton)
    - [createTabbedInterface](#createtabbedinterface)
+   - [createMainFrame](#createmainframe)
 5. [Layout Model](#layout-model)
    - [Obtaining a Layout Model](#obtaining-a-layout-model)
    - [Methods](#methods)
@@ -80,24 +81,14 @@ It is built on **LibStub** and provides a complete design system, factory method
 
 ## Getting Started
 
-Retrieve the library and create a UI **Context**. The context holds all styling information and provides methods to build interface elements.
+Retrieve the library and create a UI **Context**. The context holds all styling information (pulled directly from the library's global defaults) and provides methods to build interface elements.
 
 ```lua
 local lib = LibStub:GetLibrary("AscensionSuit-UI")
 if not lib then return end
 
--- Create a context with all default styles
+-- Create a context (automatically inherits global DefaultStyles)
 local ctx = lib:CreateContext()
-
--- Create a context with custom overrides
-local myCtx = lib:CreateContext({
-    colors = {
-        primary = { 0.2, 0.6, 1.0, 1.0 },  -- Your brand colour
-    },
-    dimensions = {
-        sidebarWidth = 200,
-    }
-})
 ```
 
 Every UI component is created by calling a method on this context (e.g. `ctx:createHeader(...)`). Most methods return two values: the created frame and the next available vertical offset (`widget, nextY`), allowing you to chain elements manually.
@@ -114,22 +105,23 @@ All colour values are RGBA arrays with values between `0` and `1`.
 
 | Key              | Default                             | Description                     |
 | ---------------- | ----------------------------------- | ------------------------------- |
-| `primary`        | `{0.498, 0.075, 0.925, 1.0}`      | Main accent colour              |
-| `gold`           | `{1.0, 0.8, 0.2, 1.0}`            | Header / highlight colour       |
-| `backgroundDark` | `{0.02, 0.02, 0.031, 0.95}`       | Deep background                 |
-| `surfaceDark`    | `{0.047, 0.039, 0.082, 1.0}`      | Panel / section background      |
-| `surfaceHighlight`| `{0.165, 0.141, 0.239, 1.0}`     | Hover and border highlight      |
-| `blackDetail`    | `{0, 0, 0, 1.0}`                   | Solid black borders             |
-| `whiteDetail`    | `{1, 1, 1, 1.0}`                   | Pure white accents              |
-| `textLight`      | `{0.886, 0.91, 0.941, 1.0}`       | Primary text                    |
-| `textDim`        | `{0.58, 0.64, 0.72, 1.0}`         | Secondary / dimmed text         |
-| `sidebarBg`      | `{0.1, 0.1, 0.1, 0.95}`           | Sidebar background              |
-| `sidebarHover`   | `{0.2, 0.2, 0.2, 0.5}`            | Sidebar tab hover               |
-| `sidebarAccent`  | `{0.0, 0.48, 1.0, 0.95}`          | Sidebar accent                  |
-| `sidebarActive`  | `{0.0, 0.4, 1.0, 0.2}`            | Active tab background           |
-| `success`        | `{0.06, 0.72, 0.50, 1.0}`         | Success / Positive action       |
-| `warning`        | `{0.96, 0.61, 0.04, 1.0}`         | Warning / Caution               |
-| `error`          | `{0.93, 0.26, 0.26, 1.0}`         | Error / Negative action         |
+| `primary`        | `{ 0.300, 0.000, 0.400, 1.0 }`    | Main accent colour (Purple)     |
+| `purple`         | `{ 0.400, 0.075, 0.925, 1.0 }`    | Bright purple detail            |
+| `gold`           | `{ 1.000, 0.800, 0.200, 1.0 }`    | Header / highlight colour       |
+| `backgroundDark` | `{ 0.020, 0.020, 0.031, 0.95 }`    | Deep background                 |
+| `surfaceDark`    | `{ 0.047, 0.039, 0.082, 1.0 }`    | Panel / section background      |
+| `surfaceHighlight`| `{ 0.165, 0.141, 0.239, 1.0 }`    | Hover and border highlight      |
+| `blackDetail`    | `{ 0.0, 0.0, 0.0, 1.0 }`          | Solid black borders             |
+| `whiteDetail`    | `{ 1.0, 1.0, 1.0, 1.0 }`          | Pure white accents              |
+| `textLight`      | `{ 0.886, 0.910, 0.941, 1.0 }`    | Primary text                    |
+| `textDim`        | `{ 0.580, 0.640, 0.720, 1.0 }`    | Secondary / dimmed text         |
+| `sidebarBg`      | `{ 0.10, 0.10, 0.10, 0.95 }`      | Sidebar background              |
+| `sidebarHover`   | `{ 0.20, 0.20, 0.20, 0.5 }`       | Sidebar tab hover               |
+| `sidebarAccent`  | `{ 0.00, 0.48, 1.00, 0.95 }`      | Sidebar accent                  |
+| `sidebarActive`  | `{ 0.00, 0.40, 1.00, 0.2 }`       | Active tab background           |
+| `success`        | `{ 0.062, 0.725, 0.505, 1.0 }`    | Success / Positive action       |
+| `warning`        | `{ 0.960, 0.619, 0.043, 1.0 }`    | Warning / Caution               |
+| `error`          | `{ 0.937, 0.266, 0.266, 1.0 }`    | Error / Negative action         |
 
 ### Files
 Texture paths used for backdrops and edges.
@@ -436,6 +428,25 @@ The **panel frame** provided to each `buildFunc` has two important sub‑frames:
 
 ---
 
+### `createMainFrame`
+Creates a standardized main application window for the suite. This method encapsulates the frame creation, styling, UX behaviors (movable, resizable, ESC-to-close), title header, close button, and tabbed sidebar navigation into a single call.
+
+**Parameters** (table `options`):
+
+| Parameter    | Type    | Required | Default              | Description                                  |
+| ------------ | ------- | -------- | -------------------- | -------------------------------------------- |
+| `name`       | string  | Yes      | –                    | Global name for the frame (e.g. "MyAddonFrame")|
+| `title`      | string  | No       | "Ascension Window"   | Header text shown at top-left                |
+| `width`      | number  | No       | 850                  | Default window width                         |
+| `height`     | number  | No       | 500                  | Default window height                        |
+| `tabNames`   | table   | Yes      | –                    | Array of strings for sidebar tab labels      |
+| `tabFuncs`   | table   | Yes      | –                    | Array of functions to build each tab         |
+| `initialTab` | number  | No       | 1                    | Which tab to show on first open              |
+
+**Returns**: `frame` – the created main window frame. You can access the tabbed UI via `frame.tabbedUI`.
+
+---
+
 ## Layout Model
 
 The **Layout Model** automatically tracks the vertical position (`yOffset`) as you add elements, eliminating the need for manual `nextY` calculations.  
@@ -580,33 +591,10 @@ A complete, working example that creates a movable, closable, resizable configur
 local lib = LibStub:GetLibrary("AscensionSuit-UI")
 local ctx = lib:CreateContext()
 
--- 1. Create the main frame
-local f = CreateFrame("Frame", "MyAddonConfig", UIParent, "BackdropTemplate")
-f:SetSize(450, 400)
-f:SetPoint("CENTER")
-f:SetBackdrop({
-    bgFile      = ctx.styles.files.bgFile,
-    edgeFile    = ctx.styles.files.edgeFile,
-    edgeSize    = 1,
-})
-f:SetBackdropColor(unpack(ctx.styles.colors.backgroundDark))
-f:SetBackdropBorderColor(unpack(ctx.styles.colors.surfaceHighlight))
-f:Hide()
-
--- 2. Make it movable, resizable, closable
-lib.UX:makeMovable(f)
-lib.UX:makeResizable(f, 300, 200)
-lib.UX:makeClosableWithEscape(f)
-
--- 3. Add a close button (optional)
-local closeBtn = ctx:createCloseButton(f, function() f:Hide() end)
-closeBtn:SetPoint("TOPRIGHT", -5, -5)
-
--- 4. Build tabs
-local tabNames = { "General", "Advanced" }
+-- 1. Define Tab Content Functions
 local buildFuncs = {
-    function(panel) -- panel.content is where you add widgets
-        local layout = lib.LayoutModel:new(ctx, -15)
+    function(panel) -- General Tab
+        local layout = lib.LayoutModel:new(ctx)
         layout:reset(panel.content, -15)
         layout:header("General Settings")
         layout:checkbox("Enable Addon", "Toggles the core functionality",
@@ -618,8 +606,8 @@ local buildFuncs = {
             function(v) MyAddonDB.scale = v end
         )
     end,
-    function(panel)
-        local layout = lib.LayoutModel:new(ctx, -15)
+    function(panel) -- Advanced Tab
+        local layout = lib.LayoutModel:new(ctx)
         layout:reset(panel.content, -15)
         layout:header("Advanced Options")
         layout:dropdown("Theme", "Select a colour theme",
@@ -634,9 +622,18 @@ local buildFuncs = {
         )
     end,
 }
-ctx:createTabbedInterface(f, tabNames, buildFuncs, 1)
 
--- 5. Show command
+-- 2. Create the main frame with one call
+local f = ctx:createMainFrame({
+    name     = "MyAddonConfig",
+    title    = "My Addon Configuration",
+    tabNames = { "General", "Advanced" },
+    tabFuncs = buildFuncs,
+    width    = 600,
+    height   = 450
+})
+
+-- 3. Show command
 SLASH_MYADDON1 = "/myaddon"
 SlashCmdList["MYADDON"] = function() f:Show() end
 ```

@@ -1,10 +1,12 @@
 <h1>@project-version@</h1>
 <ul>
-    <li>Improved tooltip visibility: Set alpha to 100% and increased font size for better readability.</li>
-    <li>Refactored inputs,dropdowns,steppers and sliders for UI consistency.</li>
-    <li>Added hover effects to inputs, dropdown and steppers.</li>
-    <li>Cleaner code for consistency.</li>
-
+    <li>Added <code>createMainFrame</code>: A standardized method to create the main application window with header, close button, and tabbed sidebar navigation.</li>
+    <li>Centralized window creation logic to reduce boilerplate code in consumer addons.</li>
+    <li>The use of blizzard asset has been reduce and replaced by my own created assets using just a few textures.</li>
+    <li>Improved the overall performance of the addon.</li>
+    <li>Astethic improvements across the board.</li>
 </ul>
+<br>
+
 <br>
 <h2>Positive feedback is always appreciated, it helps me to continue working on this project</h2>

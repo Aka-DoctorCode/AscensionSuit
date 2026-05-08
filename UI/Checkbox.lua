@@ -59,9 +59,11 @@ function Context:createCheckbox(args)
     -- Hover effect
     local styles = self.styles
     checkbox:SetScript("OnEnter", function(self)
-        if styles.colors.primary then self:SetBackdropBorderColor(unpack(styles.colors.primary)) end
-        -- Subtle purple tint for better visibility without being solid purple
-        self:SetBackdropColor(0.25, 0.15, 0.4, 1.0) 
+        if styles.colors.primary then 
+            self:SetBackdropBorderColor(unpack(styles.colors.primary))
+            local r, g, b = unpack(styles.colors.primary)
+            self:SetBackdropColor(r, g, b, 0.3)
+        end
         if label then label:SetTextColor(1, 1, 1) end
     end)
     checkbox:SetScript("OnLeave", function(self)

@@ -10,6 +10,7 @@ ignore:
     __MACOSX
     CHANGELOG.txt
     README.md
+    MockUI.lua
 # externals:
 #   Libs/LibStub:
 #     url: https://repos.wowace.com/wow/libstub/trunk

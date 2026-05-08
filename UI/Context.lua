@@ -9,24 +9,27 @@ local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
 
+    -- primary         = { 0.300, 0.000, 0.400, 1.00 },--#4C0066FF
+    -- sidebarAccent   = { 0.000, 0.480, 1.000, 0.95 },--#0078FFFF
+    -- sidebarActive   = { 0.000, 0.400, 1.000, 0.20 },--#0066FF33
+    -- primaryAlpha    = { 0.750, 0.500, 0`.980, 0.15 },--#BF80FA33
+
 lib.DefaultStyles = {
     colors = {
-        primary           = { 0.498, 0.075, 0.925, 1.0 },
-        gold              = { 1.000, 0.800, 0.200, 1.0 },
-        backgroundDark    = { 0.020, 0.020, 0.031, 0.95 },
-        surfaceDark       = { 0.047, 0.039, 0.082, 1.0 },
-        surfaceHighlight  = { 0.165, 0.141, 0.239, 1.0 },
-        blackDetail       = { 0.0, 0.0, 0.0, 1.0 },
-        whiteDetail       = { 1.0, 1.0, 1.0, 1.0 },
-        textLight         = { 0.886, 0.910, 0.941, 1.0 },
-        textDim           = { 0.580, 0.640, 0.720, 1.0 },
-        sidebarBg         = { 0.10, 0.10, 0.10, 0.95 },
-        sidebarHover      = { 0.20, 0.20, 0.20, 0.5 },
-        sidebarAccent     = { 0.00, 0.48, 1.00, 0.95 },
-        sidebarActive     = { 0.00, 0.40, 1.00, 0.2 },
-        success           = { 0.062, 0.725, 0.505, 1.0 },
-        warning           = { 0.960, 0.619, 0.043, 1.0 },
-        error             = { 0.937, 0.266, 0.266, 1.0 },
+        -- backgrounds colors
+        backgroundDark  = { 0.020, 0.020, 0.020, 0.95 },--#050505F2
+        surfaceDark     = { 0.050, 0.040, 0.080, 1.00 },--#0D0A14FF
+        surfaceHighlight= { 0.170, 0.140, 0.240, 1.00 },--#2B243DFF
+        -- Details Colors
+        primary         = { 0.750, 0.500, 0.980, 1.00 },--#BF80FAFF
+        sidebarAccent   = { 0.400, 0.075, 0.925, 0.90 },--#6601F899
+        sidebarActive   = { 0.400, 0.075, 0.925, 0.20 },--#6601F833
+        sidebarHover    = { 0.200, 0.200, 0.200, 0.50 },--#33333380
+        error           = { 1.000, 0.270, 0.270, 1.00 },--#FF4444FF
+        blackDetail     = { 0.100, 0.100, 0.100, 1.00 },--#191919FF
+        -- Text Colors
+        gold            = { 0.930, 0.730, 0.120, 1.00 },--#EDBA1FFF
+        textLight       = { 0.900, 0.900, 0.900, 1.00 },--#E6E6E6FF
     },
     files = {
         bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
@@ -42,8 +45,8 @@ lib.DefaultStyles = {
         contentPadding     = 16,  -- Internal margin for layout containers
         headerSpacing      = 32,  -- Vertical gap between section headers
         labelSpacing       = 16,  -- Default spacing for text labels
-        titleTop           = -16, -- Vertical offset for page titles
-        titleLeft          = 16,  -- Horizontal offset for page titles
+        titleTop           = -16, -- Vertical oFFset for page titles
+        titleLeft          = 16,  -- Horizontal oFFset for page titles
         tabWidth           = 144, -- Width of individual interface tabs
         tabHeight          = 30,  -- Height of individual interface tabs
         tabSpacing         = 6,   -- Horizontal gap between tabs
@@ -73,27 +76,9 @@ lib.DefaultStyles = {
 local Context = {}
 Context.__index = Context
 
-function lib:CreateContext(addonStyles)
-    local styles = {}
-    for k, v in pairs(lib.DefaultStyles) do
-        if addonStyles and addonStyles[k] and type(v) == "table" and type(addonStyles[k]) == "table" then
-            styles[k] = {}
-            for sk, sv in pairs(v) do
-                styles[k][sk] = addonStyles[k][sk] ~= nil and addonStyles[k][sk] or sv
-            end
-            -- Also include any extra keys from addonStyles that are not in defaults
-            for sk, sv in pairs(addonStyles[k]) do
-                if styles[k][sk] == nil then
-                    styles[k][sk] = sv
-                end
-            end
-        else
-            styles[k] = (addonStyles and addonStyles[k] ~= nil) and addonStyles[k] or v
-        end
-    end
-
+function lib:CreateContext()
     local ctx = setmetatable({
-        styles = styles,
+        styles = lib.DefaultStyles,
         layoutModel = nil
     }, Context)
 
@@ -103,6 +88,7 @@ function lib:CreateContext(addonStyles)
     
     return ctx
 end
+
 
 function Context:createLayoutModel(parent, startY)
     if lib.LayoutModel then

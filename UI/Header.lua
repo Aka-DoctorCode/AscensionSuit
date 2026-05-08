@@ -20,13 +20,23 @@ function Context:createHeader(args)
     local parent = args.parent
     local text = args.text
     local yOffset = args.yOffset
-    local color = args.color or self.styles.colors.gold
+    local xOffset = args.xOffset
+    local anchorFrame = args.anchorFrame
+
+    local color = args.color
+    if not color and self.styles and self.styles.colors then
+        color = self.styles.colors.gold
+    end
     local leftPadding = self.styles.dimensions.contentPadding or 16
+    local actualX = xOffset or leftPadding
 
     local header = parent:CreateFontString(nil, "OVERLAY", self.styles.fonts.header)
-    header:SetPoint("TOPLEFT", leftPadding, yOffset)
+    header:SetPoint("TOPLEFT", anchorFrame or parent, "TOPLEFT", actualX, yOffset)
     header:SetText(text)
     
+    local font, size, flags = header:GetFont()
+    header:SetFont(font, size, "THICKOUTLINE")
+
     if color then
         header:SetTextColor(unpack(color))
     end
