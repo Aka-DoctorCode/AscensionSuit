@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,8 +15,11 @@ if not lib then return end
 local UX = lib.UX or {}
 lib.UX = UX
 
----Hides all children and regions of a frame. Useful for recycling UI panels.
----@param contentFrame frame
+-- -------------------------------------------------------------------------------
+-- 2. UI UTILITIES
+-- -------------------------------------------------------------------------------
+--- Hides all children and regions of a frame.
+--- Primarily used for recycling UI panels or clearing content before a redraw.
 function UX:cleanupContent(contentFrame)
     if not contentFrame then return end
     

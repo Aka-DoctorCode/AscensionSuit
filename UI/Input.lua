@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,6 +15,10 @@ if not lib then return end
 local Context = lib.Context
 if not Context then return end
 
+-- -------------------------------------------------------------------------------
+-- 2. INPUT FACTORY
+-- -------------------------------------------------------------------------------
+--- Creates a standardized text input field (EditBox) with custom styling and focus effects.
 function Context:createInput(args)
     if not args or not args.parent then return nil, 0 end
 
@@ -25,12 +32,14 @@ function Context:createInput(args)
 
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
     local actualWidth = width or 200
-
     local actualHeight = self.styles.dimensions.editBoxHeight or 28
+
+    -- Container Frame
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(actualWidth, actualHeight)
     frame:SetPoint("TOPLEFT", actualX, yOffset - 4)
 
+    -- EditBox
     local editBox = CreateFrame("EditBox", nil, frame, "BackdropTemplate")
     editBox:SetSize(actualWidth, actualHeight)
     editBox:SetPoint("TOPLEFT", 0, 0)
@@ -38,6 +47,7 @@ function Context:createInput(args)
     editBox:SetFontObject(self.styles.fonts.label)
     editBox:SetTextInsets(8, 8, 0, 0)
 
+    -- Styling
     editBox:SetBackdrop({
         bgFile = self.styles.files.bgFile,
         edgeFile = self.styles.files.edgeFile,
@@ -46,9 +56,12 @@ function Context:createInput(args)
     })
 
     local styles = self.styles
-    if styles.colors.surfaceHighlight then editBox:SetBackdropColor(unpack(styles.colors.surfaceHighlight)) end
+    if styles.colors.surfaceLight then editBox:SetBackdropColor(unpack(styles.colors.surfaceLight)) end
     if styles.colors.blackDetail then editBox:SetBackdropBorderColor(unpack(styles.colors.blackDetail)) end
 
+    -- -------------------------------------------------------------------------------
+    -- 3. EVENT HANDLERS
+    -- -------------------------------------------------------------------------------
     editBox:SetScript("OnEnter", function(self)
         if not self:HasFocus() and styles.colors.primary then 
             self:SetBackdropColor(unpack(styles.colors.primary)) 
@@ -58,7 +71,7 @@ function Context:createInput(args)
 
     editBox:SetScript("OnLeave", function(self)
         if not self:HasFocus() then
-            if styles.colors.surfaceHighlight then self:SetBackdropColor(unpack(styles.colors.surfaceHighlight)) end
+            if styles.colors.surfaceLight then self:SetBackdropColor(unpack(styles.colors.surfaceLight)) end
             if styles.colors.blackDetail then self:SetBackdropBorderColor(unpack(styles.colors.blackDetail)) end
         end
     end)
@@ -69,7 +82,7 @@ function Context:createInput(args)
     end)
 
     editBox:SetScript("OnEditFocusLost", function(self)
-        if styles.colors.surfaceHighlight then self:SetBackdropColor(unpack(styles.colors.surfaceHighlight)) end
+        if styles.colors.surfaceLight then self:SetBackdropColor(unpack(styles.colors.surfaceLight)) end
         if styles.colors.blackDetail then self:SetBackdropBorderColor(unpack(styles.colors.blackDetail)) end
     end)
 
@@ -81,6 +94,7 @@ function Context:createInput(args)
 
     frame.editBox = editBox
 
+    -- UX Integration
     if tooltip and lib.UX and lib.UX.attachTooltip then
         lib.UX:attachTooltip(frame, text, tooltip)
     end

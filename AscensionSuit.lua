@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR, MINOR = "AscensionSuit-UI", 2
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end

@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,6 +15,10 @@ if not lib then return end
 local Context = lib.Context
 if not Context then return end
 
+-- -------------------------------------------------------------------------------
+-- 2. BUTTON FACTORY
+-- -------------------------------------------------------------------------------
+--- Creates a standardized button with hover effects and optional tooltip.
 function Context:createButton(args)
     if not args or not args.parent then return nil, 0 end
 
@@ -28,11 +35,13 @@ function Context:createButton(args)
     local actualWidth = width or 120
     local actualHeight = height or 28
 
+    -- Base Frame
     local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
     btn:SetSize(actualWidth, actualHeight)
     btn:SetPoint("TOPLEFT", actualX, yOffset)
     btn:SetFrameLevel(parent:GetFrameLevel() + 10)
 
+    -- Backdrop Styling
     btn:SetBackdrop({
         bgFile = self.styles.files.bgFile,
         edgeFile = self.styles.files.edgeFile,
@@ -40,15 +49,19 @@ function Context:createButton(args)
         insets = { left = 1, right = 1, top = 1, bottom = 1 }
     })
     
-    if self.styles.colors.surfaceHighlight then btn:SetBackdropColor(unpack(self.styles.colors.surfaceHighlight)) end
+    if self.styles.colors.surfaceLight then btn:SetBackdropColor(unpack(self.styles.colors.surfaceLight)) end
     if self.styles.colors.blackDetail then btn:SetBackdropBorderColor(unpack(self.styles.colors.blackDetail)) end
 
+    -- Text Label
     local btnText = btn:CreateFontString(nil, "OVERLAY", self.styles.fonts.label)
     btnText:SetPoint("CENTER", 0, 0)
     btnText:SetText(text)
     if self.styles.colors.textLight then btnText:SetTextColor(unpack(self.styles.colors.textLight)) end
     btn.text = btnText
 
+    -- -------------------------------------------------------------------------------
+    -- 3. EVENT HANDLERS
+    -- -------------------------------------------------------------------------------
     local styles = self.styles
     btn:SetScript("OnEnter", function(self)
         if styles.colors.primary then self:SetBackdropColor(unpack(styles.colors.primary)) end
@@ -56,7 +69,7 @@ function Context:createButton(args)
     end)
 
     btn:SetScript("OnLeave", function(self)
-        if styles.colors.surfaceHighlight then self:SetBackdropColor(unpack(styles.colors.surfaceHighlight)) end
+        if styles.colors.surfaceLight then self:SetBackdropColor(unpack(styles.colors.surfaceLight)) end
         if styles.colors.blackDetail then self:SetBackdropBorderColor(unpack(styles.colors.blackDetail)) end
     end)
 
@@ -64,6 +77,7 @@ function Context:createButton(args)
     btn:SetScript("OnMouseUp", function(self) self.text:SetPoint("CENTER", 0, 0) end)
     btn:SetScript("OnClick", function() if onClick then onClick() end end)
 
+    -- UX Integration
     if tooltip and lib.UX and lib.UX.attachTooltip then 
         lib.UX:attachTooltip(btn, text, tooltip) 
     end

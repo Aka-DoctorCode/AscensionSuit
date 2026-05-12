@@ -5,13 +5,18 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
 
----Initializes a position storage table in the global AscensionUIPositions.
----@param moduleKey string The key for the module (e.g. "AscensionSound")
----@param defaultTable table The default position table {point, relativePoint, x, y}
+-- -------------------------------------------------------------------------------
+-- 2. POSITION STORAGE HELPERS
+-- -------------------------------------------------------------------------------
+--- Initializes a position storage table in the global AscensionUIPositions registry.
+--- Ensures that UI elements can persist their locations across sessions.
 function lib:initPositionStorage(moduleKey, defaultTable)
     _G.AscensionUIPositions = _G.AscensionUIPositions or {}
     if not _G.AscensionUIPositions[moduleKey] then
@@ -20,9 +25,7 @@ function lib:initPositionStorage(moduleKey, defaultTable)
     return _G.AscensionUIPositions[moduleKey]
 end
 
----Updates a position table from a frame's current coordinates.
----@param frame frame The frame to get coordinates from
----@param positionTable table The table to update
+--- Updates a position table with a frame's current screen coordinates.
 function lib:updatePositionFromFrame(frame, positionTable)
     if not frame or not positionTable then return end
     local point, _, relPoint, x, y = frame:GetPoint()

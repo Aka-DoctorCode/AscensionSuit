@@ -15,7 +15,7 @@ if not AscensionUI then return end
 -- -------------------------------------------------------------------------------
 local ctx = AscensionUI:CreateContext()
 
--- Adjust dimensions specifically for the gallery to fit all 18 tabs
+-- Global adjustments for the gallery layout
 ctx.styles.dimensions.tabHeight = 26
 ctx.styles.dimensions.tabSpacing = 4
 local styles = ctx.styles
@@ -23,6 +23,7 @@ local styles = ctx.styles
 -- -------------------------------------------------------------------------------
 -- 2. MOCK DATA
 -- -------------------------------------------------------------------------------
+--- Database for simulating state changes in the gallery.
 local mockDB = {
     check = true,
     slider = 50,
@@ -36,10 +37,9 @@ local mockDB = {
 -- -------------------------------------------------------------------------------
 -- 3. UTILITIES
 -- -------------------------------------------------------------------------------
-
----Utility to display which colors are impacting a specific component tab.
+--- Displays which colors are impacting a specific component tab.
 local function showComponentColors(panel, colors)
-    local py = -280 -- Pushed down to accommodate blueprints or descriptions
+    local py = -280 -- Offset to accommodate blueprint visuals
     ctx:createHeader({ parent = panel.content, text = "Color Usage Details:", yOffset = py })
     py = py - 30
 
@@ -63,17 +63,17 @@ local function showComponentColors(panel, colors)
 end
 
 -- -------------------------------------------------------------------------------
--- 4. PALETTE MENU LOGIC (Standalone or Integrated)
+-- 4. PALETTE MENU LOGIC
 -- -------------------------------------------------------------------------------
-
+--- Creates a visual palette viewer showing all defined theme colors.
 local function CreatePaletteFrame(parent)
     local pFrame = CreateFrame("Frame", "AscensionSuitPaletteFrame", parent or UIParent, "BackdropTemplate")
-    pFrame:SetSize(180, 580)
+    pFrame:SetSize(200, 580)
     pFrame:SetFrameStrata("TOOLTIP")
     
     if parent then
         -- Integrated: Anchor to the main frame
-        pFrame:SetPoint("TOPRIGHT", parent, "TOPLEFT", -10, 0)
+        pFrame:SetPoint("TOPRIGHT", parent, "TOPLEFT", -5, 0)
     else
         -- Standalone: Anchor to center and enable UX behaviors
         pFrame:SetPoint("CENTER")
@@ -89,34 +89,43 @@ local function CreatePaletteFrame(parent)
         edgeSize = 1,
         insets = { left = 1, right = 1, top = 1, bottom = 1 }
     })
-    local bg = styles.colors.backgroundDark
-    pFrame:SetBackdropColor(bg[1], bg[2], bg[3], 0.0)
-    pFrame:SetBackdropBorderColor(unpack(styles.colors.surfaceHighlight))
+    local bg = styles.colors.mainBackground
+    pFrame:SetBackdropColor(bg[1], bg[2], bg[3], 0.25)
+    pFrame:SetBackdropBorderColor(unpack(styles.colors.surfaceLight))
 
-    local pHeader = pFrame:CreateFontString(nil, "OVERLAY", styles.fonts.header)
-    pHeader:SetPoint("TOP", 0, -15)
-    pHeader:SetText("Global Palette")
-    pHeader:SetTextColor(unpack(styles.colors.gold))
+    -- Header
+    ctx:createHeader({ parent = pFrame, text = "Global Palette", yOffset = -15 })
 
     -- Add Close Button
     local closeBtn = ctx:createCloseButton(pFrame, function() pFrame:Hide() end)
-    closeBtn:SetPoint("TOPRIGHT", -5, -5)
+    closeBtn:SetPoint("TOPRIGHT", 5, 5)
 
     local py = -45
     
-    -- Get all colors and sort them alphabetically
-    local sortedKeys = {}
-    for k in pairs(styles.colors) do table.insert(sortedKeys, k) end
-    table.sort(sortedKeys)
+    local colorKeys = {
+        "mainBackground",
+        "surfaceDark",
+        "surfaceLight",
+        "surfaceHover",
+        "primary",
+        "primaryAlpha",
+        "sidebarAccent",
+        "sidebarActive",
+        "sidebarHover",
+        "redDetail",
+        "blackDetail",
+        "gold",
+        "textLight",
+    }
 
-    for _, key in ipairs(sortedKeys) do
+    for _, key in ipairs(colorKeys) do
         local color = styles.colors[key]
         if color then
             local sw = CreateFrame("Frame", nil, pFrame)
             sw:SetSize(20, 20)
             sw:SetPoint("TOPLEFT", 10, py)
             
-            -- Actual Color Swatch
+            -- Visual Swatch
             local tex = sw:CreateTexture(nil, "OVERLAY")
             tex:SetAllPoints()
             tex:SetColorTexture(1, 1, 1, 1)
@@ -125,24 +134,20 @@ local function CreatePaletteFrame(parent)
             local lbl = pFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
             lbl:SetPoint("LEFT", sw, "RIGHT", 8, 0)
             lbl:SetText(key)
-            
             py = py - 28
         end
     end
-
-    -- Set exact height based on content
+    
     pFrame:SetHeight(math.abs(py) + 15)
-
     return pFrame
 end
-
 
 -- -------------------------------------------------------------------------------
 -- 5. MAIN GALLERY CREATION
 -- -------------------------------------------------------------------------------
+--- Orchestrates the creation of the entire UI component gallery.
 local function CreateMockUI()
-    
-    -- List of all tabs in the sidebar
+    -- Navigation Tab Names
     local tabNames = {
         "Main Window",
         -- "Header", 
@@ -164,43 +169,88 @@ local function CreateMockUI()
         "Full Palette"
     }
 
-    -- Functions that build the content for each tab
+    -- Tab Content Builders
     local tabFuncs = {
-
         -- [ TAB 1: MAIN WINDOW ] ----------------------------------------------
         function(panel)
             ctx:createHeader({ parent = panel.content, text = "Main Window (createMainFrame)", yOffset = -20 })
             ctx:createLabel({ parent = panel.content, text = "Structural Blueprint:", yOffset = -50 })
 
-            -- Mini Mock-up of the MainFrame structure
+            -- Mini Mock-up Diagram
             local mu = CreateFrame("Frame", nil, panel.content, "BackdropTemplate")
             mu:SetSize(240, 150)
             mu:SetPoint("TOPLEFT", 20, -75)
             mu:SetBackdrop({ bgFile = styles.files.bgFile, edgeFile = styles.files.edgeFile, edgeSize = 1 })
-            mu:SetBackdropColor(0, 0, 0, 0.8) mu:SetBackdropBorderColor(unpack(styles.colors.surfaceHighlight))
+            mu:SetBackdropColor(0, 0, 0, 0.8) mu:SetBackdropBorderColor(unpack(styles.colors.surfaceLight))
 
-            -- Mock Header
+            -- Diagram Components
             local mh = mu:CreateTexture(nil, "OVERLAY") mh:SetSize(80, 4) mh:SetPoint("TOPLEFT", 10, -10) mh:SetColorTexture(unpack(styles.colors.gold))
-            -- Mock Sidebar
             local ms = mu:CreateTexture(nil, "OVERLAY") ms:SetSize(40, 120) ms:SetPoint("TOPLEFT", 0, -25) ms:SetColorTexture(0.1, 0.1, 0.1, 0.8)
-            local ml = mu:CreateTexture(nil, "OVERLAY") ml:SetSize(1, 120) ml:SetPoint("LEFT", ms, "RIGHT", 0, 0) ml:SetColorTexture(unpack(styles.colors.surfaceHighlight))
-            -- Mock Tabs
+            local ml = mu:CreateTexture(nil, "OVERLAY") ml:SetSize(1, 120) ml:SetPoint("LEFT", ms, "RIGHT", 0, 0) ml:SetColorTexture(unpack(styles.colors.surfaceLight))
             for i=1, 4 do local mt = mu:CreateTexture(nil, "OVERLAY") mt:SetSize(30, 4) mt:SetPoint("TOPLEFT", 5, -30 - (i*10)) mt:SetColorTexture(unpack(styles.colors.primary)) mt:SetAlpha(0.4) end
-            -- Mock Content
             local mc = mu:CreateTexture(nil, "OVERLAY") mc:SetSize(160, 100) mc:SetPoint("TOPLEFT", 50, -35) mc:SetColorTexture(unpack(styles.colors.surfaceDark))
 
             ctx:createLabel({ parent = panel.content, text = "ctx:createMainFrame(options)", yOffset = -130, xOffset = 280, color = {1,0,0,1} })
             ctx:createLabel({ parent = panel.content, text = "- Standardized Backdrop\n- Auto Header & Close Btn\n- Built-in Sidebar\n- Scrollable Content Area", yOffset = -150, xOffset = 280 })
 
             showComponentColors(panel, { 
-                {key="backgroundDark", usage="Window Main Background"}, 
-                {key="surfaceHighlight", usage="Outer Border & Sidebar Separator"},
-                {key="sidebarBg", usage="Sidebar Background Area (Optional)"},
+                {key="mainBackground", usage="Window Main Background"}, 
+                {key="surfaceLight", usage="Outer Border & Sidebar Separator"},
+                {key="surfaceDark", usage="Inner Content Area Background"},
+                {key="surfaceHover", usage="Hover Background"},
                 {key="gold", usage="Primary Window Title Color"},
                 {key="primary", usage="Sidebar Tab Selection Accent"},
-                {key="whiteDetail", usage="Accents and Icon Borders"},
-                {key="error", usage="Close Button Hover Color"}
+                {key="redDetail", usage="Close Button Hover Color"}
             })
+
+            -- Visual Composition Box
+            local visualBox = CreateFrame("Frame", nil, panel.content, "BackdropTemplate")
+            visualBox:SetSize(200, 200)
+            visualBox:SetPoint("TOPLEFT", 20, -480)
+            visualBox:SetBackdrop({
+                bgFile = styles.files.bgFile,
+                edgeFile = styles.files.edgeFile,
+                edgeSize = 1,
+            })
+            visualBox:SetBackdropColor(unpack(styles.colors.surfaceDark))
+            visualBox:SetBackdropBorderColor(unpack(styles.colors.surfaceLight))
+
+            -- Corner Squares with interaction
+            local offsets = {
+                { x = 20,  y = -20 },
+                { x = 140, y = -20 },
+                { x = 20,  y = -140 },  
+                { x = 140, y = -140 }
+            }
+            for _, pos in ipairs(offsets) do
+                local border = CreateFrame("Frame", nil, visualBox)
+                border:SetSize(44, 44)
+                border:SetPoint("TOPLEFT", visualBox, "TOPLEFT", pos.x - 2, pos.y + 2)
+                border:EnableMouse(true)
+                
+                local bTex = border:CreateTexture(nil, "BACKGROUND")
+                bTex:SetAllPoints()
+                bTex:SetColorTexture(unpack(styles.colors.blackDetail))
+
+                local fill = border:CreateTexture(nil, "OVERLAY")
+                fill:SetPoint("TOPLEFT", 2, -2)
+                fill:SetPoint("BOTTOMRIGHT", -2, 2)
+                fill:SetColorTexture(unpack(styles.colors.surfaceLight))
+
+                border:SetScript("OnEnter", function()
+                    fill:SetColorTexture(unpack(styles.colors.surfaceHover))
+                end)
+                border:SetScript("OnLeave", function()
+                    fill:SetColorTexture(unpack(styles.colors.surfaceLight))
+                end)
+            end
+
+            -- Restore labels next to mini-mockup
+            ctx:createLabel({ parent = panel.content, text = "ctx:createMainFrame(options)", yOffset = -130, xOffset = 280, color = {1,0,0,1} })
+            ctx:createLabel({ parent = panel.content, text = "- Standardized Backdrop\n- Auto Header & Close Btn\n- Built-in Sidebar\n- Scrollable Content Area", yOffset = -150, xOffset = 280 })
+
+            -- Adjust content height
+            panel.content:SetHeight(math.abs(-480 - 200) + 50)
         end,
 
         -- -- [ TAB 2: HEADER ] ---------------------------------------------------
@@ -221,28 +271,28 @@ local function CreateMockUI()
         -- function(panel)
         --     ctx:createCheckbox({ parent = panel.content, text = "Checkbox Element", yOffset = -30, getter = function() return mockDB.check end, setter = function(v) mockDB.check = v end })
         --     ctx:createLabel({ parent = panel.content, text = "createCheckbox", yOffset = -30, xOffset = 300, color = {1,0,0,1} })
-        --     showComponentColors(panel, { {key="primary", usage="Checkmark & Hover Border"}, {key="surfaceHighlight", usage="Box BG"}, {key="textLight", usage="Label"} })
+        --     showComponentColors(panel, { {key="primary", usage="Checkmark & Hover Border"}, {key="surfaceLight", usage="Box BG"}, {key="textLight", usage="Label"} })
         -- end,
 
         -- -- [ TAB 5: SLIDER ] ---------------------------------------------------
         -- function(panel)
         --     ctx:createSlider({ parent = panel.content, text = "Slider Element", yOffset = -20, minVal = 0, maxVal = 100, step = 1, getter = function() return mockDB.slider end, setter = function(v) mockDB.slider = v end })
         --     ctx:createLabel({ parent = panel.content, text = "createSlider", yOffset = -44, xOffset = 300, color = {1,0,0,1} })
-        --     showComponentColors(panel, { {key="primary", usage="Thumb Handle"}, {key="surfaceHighlight", usage="Track BG"} })
+        --     showComponentColors(panel, { {key="primary", usage="Thumb Handle"}, {key="surfaceLight", usage="Track BG"} })
         -- end,
 
         -- -- [ TAB 6: STEPPER ] --------------------------------------------------
         -- function(panel)
         --     ctx:createStepper({ parent = panel.content, text = "Stepper Element", yOffset = -20, minVal = 0, maxVal = 10, step = 1, getter = function() return mockDB.stepper end, setter = function(v) mockDB.stepper = v end })
         --     ctx:createLabel({ parent = panel.content, text = "createStepper", yOffset = -20, xOffset = 300, color = {1,0,0,1} })
-        --     showComponentColors(panel, { {key="surfaceHighlight", usage="Button BG"}, {key="blackDetail", usage="Button Borders"} })
+        --     showComponentColors(panel, { {key="surfaceLight", usage="Button BG"}, {key="blackDetail", usage="Button Borders"} })
         -- end,
 
         -- -- [ TAB 7: DROPDOWN ] -------------------------------------------------
         -- function(panel)
         --     ctx:createDropdown({ parent = panel.content, text = "Dropdown Element", yOffset = -20, options = { {label="Choice 1", value="opt1"}, {label="Choice 2", value="opt2"} }, getter = function() return mockDB.dropdown end, setter = function(v) mockDB.dropdown = v end })
         --     ctx:createLabel({ parent = panel.content, text = "createDropdown", yOffset = -24, xOffset = 300, color = {1,0,0,1} })
-        --     showComponentColors(panel, { {key="surfaceDark", usage="List BG"}, {key="surfaceHighlight", usage="List Border"} })
+        --     showComponentColors(panel, { {key="surfaceDark", usage="List BG"}, {key="surfaceLight", usage="List Border"} })
         -- end,
 
         -- -- [ TAB 8: INPUT FIELD ] ----------------------------------------------
@@ -256,21 +306,21 @@ local function CreateMockUI()
         -- function(panel)
         --     ctx:createButton({ parent = panel.content, text = "Standard Button", yOffset = -20, onClick = function() end })
         --     ctx:createLabel({ parent = panel.content, text = "createButton", yOffset = -20, xOffset = 300, color = {1,0,0,1} })
-        --     showComponentColors(panel, { {key="primary", usage="Hover BG"}, {key="surfaceHighlight", usage="Default BG"} })
+        --     showComponentColors(panel, { {key="primary", usage="Hover BG"}, {key="surfaceLight", usage="Default BG"} })
         -- end,
 
         -- -- [ TAB 10: CLOSE BUTTON ] --------------------------------------------
         -- function(panel)
         --     local b = ctx:createCloseButton(panel.content, function() end) b:SetPoint("TOPLEFT", 20, -20)
         --     ctx:createLabel({ parent = panel.content, text = "createCloseButton", yOffset = -20, xOffset = 300, color = {1,0,0,1} })
-        --     showComponentColors(panel, { {key="error", usage="Hover BG (Red)"}, {key="surfaceHighlight", usage="Default BG"} })
+        --     showComponentColors(panel, { {key="error", usage="Hover BG (Red)"}, {key="surfaceLight", usage="Default BG"} })
         -- end,
 
         -- -- [ TAB 11: STEP BUTTON ] ---------------------------------------------
         -- function(panel)
         --     local b = ctx:createStepButton({ parent = panel.content, symbol = "+", size = 30, onClick = function() end }) b:SetPoint("TOPLEFT", 20, -20)
         --     ctx:createLabel({ parent = panel.content, text = "createStepButton", yOffset = -25, xOffset = 300, color = {1,0,0,1} })
-        --     showComponentColors(panel, { {key="surfaceHighlight", usage="Button BG"}, {key="blackDetail", usage="Border"} })
+        --     showComponentColors(panel, { {key="surfaceLight", usage="Button BG"}, {key="blackDetail", usage="Border"} })
         -- end,
 
         -- -- [ TAB 12: COLOR PICKER ] --------------------------------------------
@@ -285,7 +335,7 @@ local function CreateMockUI()
         --     ctx:createHeader({ parent = panel.content, text = "Scroll Panel Demo", yOffset = -20 })
         --     ctx:createLabel({ parent = panel.content, text = "Every tab uses a scroll panel for content.", yOffset = -50 })
         --     ctx:createLabel({ parent = panel.content, text = "createScrollPanel", yOffset = -20, xOffset = 300, color = {1,0,0,1} })
-        --     showComponentColors(panel, { {key="surfaceHighlight", usage="Scroll Thumb Color"} })
+        --     showComponentColors(panel, { {key="surfaceLight", usage="Scroll Thumb Color"} })
         -- end,
 
         -- -- [ TAB 14: TABBED UI ] -----------------------------------------------
@@ -332,7 +382,7 @@ local function CreateMockUI()
             
         --     ctx:createLabel({ parent = panel.content, text = "attachTooltip / showContextMenu", yOffset = -135, xOffset = 180, color = {1,0,0,1} })
 
-        --     showComponentColors(panel, { {key="surfaceDark", usage="Menu Background"}, {key="surfaceHighlight", usage="Menu Border & Hover"} })
+        --     showComponentColors(panel, { {key="surfaceDark", usage="Menu Background"}, {key="surfaceLight", usage="Menu Border & Hover"} })
         -- end,
 
         -- -- [ TAB 17: INTEGRATION & STORAGE ] -----------------------------------
@@ -353,30 +403,44 @@ local function CreateMockUI()
         --     mu:SetSize(280, 80)
         --     mu:SetPoint("TOPLEFT", 20, -210)
         --     mu:SetBackdrop({ bgFile = styles.files.bgFile, edgeFile = styles.files.edgeFile, edgeSize = 1 })
-        --     mu:SetBackdropColor(0,0,0,0.6) mu:SetBackdropBorderColor(unpack(styles.colors.surfaceHighlight))
+        --     mu:SetBackdropColor(0,0,0,0.6) mu:SetBackdropBorderColor(unpack(styles.colors.surfaceLight))
             
         --     ctx:createLabel({ parent = mu, text = "_G.AscensionUIPositions = {", yOffset = -10, xOffset = 10, color = {0.6, 0.6, 1, 1} })
         --     ctx:createLabel({ parent = mu, text = "  ['MyAddon'] = { point = 'CENTER', x = 0, y = 0 }", yOffset = -30, xOffset = 10, color = {0.8, 0.8, 0.8, 1} })
         --     ctx:createLabel({ parent = mu, text = "}", yOffset = -50, xOffset = 10, color = {0.6, 0.6, 1, 1} })
 
-        --     showComponentColors(panel, { {key="gold", usage="Method Highlighting"}, {key="surfaceHighlight", usage="Code Box Border"} })
+        --     showComponentColors(panel, { {key="gold", usage="Method Highlighting"}, {key="surfaceLight", usage="Code Box Border"} })
         -- end,
 
-        -- [ TAB 18: FULL PALETTE ] --------------------------------------------
+        -- [ TAB 18: CONTEXT MENU ] --------------------------------------------
+        
+
+        -- [ TAB 19: FULL PALETTE ] --------------------------------------------
         function(panel)
             local py = -20
             ctx:createHeader({ parent = panel.content, text = "Used Colors", yOffset = py })
             py = py - 40
-            local usedKeys = { "primary", "gold", "backgroundDark", "surfaceDark", "surfaceHighlight", "blackDetail", "textLight", "sidebarHover", "sidebarAccent", "sidebarActive", "error" }
+            local usedKeys = { 
+                "mainBackground",
+                "surfaceDark",
+                "surfaceLight",
+                "surfaceHover",
+                "primary",
+                "primaryAlpha",
+                "sidebarAccent",
+                "sidebarActive",
+                "sidebarHover",
+                "redDetail",
+                "blackDetail",
+                "gold",
+                "textLight"
+            }
             for _, k in ipairs(usedKeys) do
                 local color = styles.colors[k]
                 if color then
                     local sw = CreateFrame("Frame", nil, panel.content) sw:SetSize(18, 18) sw:SetPoint("TOPLEFT", 20, py)
-                    
                     local tx = sw:CreateTexture(nil, "OVERLAY") tx:SetAllPoints() tx:SetColorTexture(unpack(color))
                     ctx:createLabel({ parent = panel.content, text = k, yOffset = py, xOffset = 50 })
-                    
-                    -- Display Hex Value
                     local hex = string.format("#%02X%02X%02X%02X", color[1]*255, color[2]*255, color[3]*255, (color[4] or 1)*255)
                     ctx:createLabel({ parent = panel.content, text = hex, yOffset = py, xOffset = 300, color = {0.7, 0.7, 0.7, 1} })
                 else
@@ -388,7 +452,7 @@ local function CreateMockUI()
         end
     }
 
-    -- Build the main gallery frame using the factory method
+    -- Main Gallery Frame
     local frame = ctx:createMainFrame({
         name     = "AscensionSuitMockFrame",
         title    = "AscensionSuit Component Gallery",
@@ -398,7 +462,7 @@ local function CreateMockUI()
         height   = 650
     })
 
-    -- Attach integrated palette
+    -- Sidebar Palette
     CreatePaletteFrame(frame)
     frame:Show()
 end
@@ -406,6 +470,7 @@ end
 -- -------------------------------------------------------------------------------
 -- 6. SLASH COMMANDS
 -- -------------------------------------------------------------------------------
+-- /mockui: Toggles the main component gallery
 SLASH_MOCKUI1 = "/mockui"
 SlashCmdList["MOCKUI"] = function()
     if AscensionSuitMockFrame and AscensionSuitMockFrame:IsShown() then
@@ -415,16 +480,14 @@ SlashCmdList["MOCKUI"] = function()
     end
 end
 
--- /palette: Opens ONLY the palette
+-- /palette: Opens the standalone color palette
 SLASH_ASPALETTE1 = "/palette"
 SlashCmdList["ASPALETTE"] = function()
-    -- If it already exists and is standalone (no parent), just toggle it
     if AscensionSuitPaletteFrame and not AscensionSuitPaletteFrame:GetParent() then
         AscensionSuitPaletteFrame:SetShown(not AscensionSuitPaletteFrame:IsShown())
     else
-        -- If it exists as part of the gallery, hide it first to avoid conflicts
         if AscensionSuitPaletteFrame then AscensionSuitPaletteFrame:Hide() end
-        local p = CreatePaletteFrame(nil) -- Create standalone
+        local p = CreatePaletteFrame(nil)
         p:Show()
     end
 end

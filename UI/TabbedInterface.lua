@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,22 +15,32 @@ if not lib then return end
 local Context = lib.Context
 if not Context then return end
 
+-- -------------------------------------------------------------------------------
+-- 2. TABBED INTERFACE FACTORY
+-- -------------------------------------------------------------------------------
+--- Creates a complex UI structure with a vertical sidebar for navigation and multiple content panels.
 function Context:createTabbedInterface(parent, tabNames, buildFuncs, initialIndex)
     local tabs = {}
     local panels = {}
     local activeTab = initialIndex or 1
     local styles = self.styles
 
+    -- Sidebar Visual Separator
     local sidebarSeparator = parent:CreateTexture(nil, "ARTWORK")
     sidebarSeparator:SetWidth(1)
     sidebarSeparator:SetPoint("TOPLEFT", styles.dimensions.sidebarWidth, -45)
     sidebarSeparator:SetPoint("BOTTOMLEFT", styles.dimensions.sidebarWidth, 75)
-    if styles.colors.surfaceHighlight then
-        sidebarSeparator:SetColorTexture(unpack(styles.colors.surfaceHighlight))
+    if styles.colors.surfaceLight then
+        sidebarSeparator:SetColorTexture(unpack(styles.colors.surfaceLight))
     end
 
+    -- -------------------------------------------------------------------------------
+    -- 3. TAB SELECTION LOGIC
+    -- -------------------------------------------------------------------------------
+    --- Switches the active view to the specified tab index.
     local function selectTab(index)
         activeTab = index
+        -- Update Tab Buttons Visual State
         for i, tab in ipairs(tabs) do
             if i == index then
                 if styles.colors.sidebarActive then tab:SetBackdropColor(unpack(styles.colors.sidebarActive)) end
@@ -37,6 +50,7 @@ function Context:createTabbedInterface(parent, tabNames, buildFuncs, initialInde
                 if tab.accent then tab.accent:Hide() end
             end
         end
+        -- Toggle Panel Visibility
         for i, panel in ipairs(panels) do
             if i == index then
                 panel:Show()
@@ -49,6 +63,10 @@ function Context:createTabbedInterface(parent, tabNames, buildFuncs, initialInde
         end
     end
 
+    -- -------------------------------------------------------------------------------
+    -- 4. TAB BUTTON FACTORY
+    -- -------------------------------------------------------------------------------
+    --- Helper to create individual navigation buttons in the sidebar.
     local function createTabButton(label, idx)
         local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
         local xOffset = (styles.dimensions.sidebarWidth - styles.dimensions.tabWidth) / 2
@@ -57,6 +75,7 @@ function Context:createTabbedInterface(parent, tabNames, buildFuncs, initialInde
         btn:SetSize(styles.dimensions.tabWidth, styles.dimensions.tabHeight)
         btn:SetPoint("TOPLEFT", xOffset, yOffset)
 
+        -- Vertical Selection Accent
         local accent = btn:CreateTexture(nil, "OVERLAY")
         accent:SetWidth(styles.dimensions.sidebarAccentWidth)
         accent:SetPoint("TOPLEFT", -xOffset, 0)
@@ -78,6 +97,7 @@ function Context:createTabbedInterface(parent, tabNames, buildFuncs, initialInde
         text:SetPoint("LEFT", 15, 0)
         text:SetText(label)
 
+        -- Interaction Scripts
         btn:SetScript("OnClick", function() selectTab(idx) end)
         btn:SetScript("OnEnter", function()
             if activeTab ~= idx and styles.colors.sidebarHover then 
@@ -92,6 +112,7 @@ function Context:createTabbedInterface(parent, tabNames, buildFuncs, initialInde
         return btn
     end
 
+    -- Initialize Tabs and Panels
     for i, name in ipairs(tabNames) do
         createTabButton(name, i)
         local panel = CreateFrame("Frame", nil, parent)
@@ -99,6 +120,7 @@ function Context:createTabbedInterface(parent, tabNames, buildFuncs, initialInde
         panel:SetPoint("BOTTOMRIGHT", -10, 15)
         panel:Hide()
 
+        -- Wrap content in a scrollable panel
         local scrollFrame, content = self:createScrollPanel({ parent = panel })
         panel.scrollFrame = scrollFrame
         panel.content = content
@@ -107,6 +129,7 @@ function Context:createTabbedInterface(parent, tabNames, buildFuncs, initialInde
         table.insert(panels, panel)
     end
 
+    -- Show initial state
     selectTab(activeTab)
 
     return {

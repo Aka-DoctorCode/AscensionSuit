@@ -11,6 +11,7 @@ ignore:
     CHANGELOG.txt
     README.md
     MockUI.lua
+    muck.html
 # externals:
 #   Libs/LibStub:
 #     url: https://repos.wowace.com/wow/libstub/trunk

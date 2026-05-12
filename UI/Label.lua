@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,6 +15,10 @@ if not lib then return end
 local Context = lib.Context
 if not Context then return end
 
+-- -------------------------------------------------------------------------------
+-- 2. LABEL FACTORY
+-- -------------------------------------------------------------------------------
+--- Creates a standardized text label with outline and custom color.
 function Context:createLabel(args)
     if not args or not args.parent or not args.text or not args.yOffset then 
         return nil, 0 
@@ -23,6 +30,7 @@ function Context:createLabel(args)
     local xOffset = args.xOffset
     local anchorFrame = args.anchorFrame
 
+    -- Style Resolution
     local color = args.color
     if not color and self.styles and self.styles.colors then
         color = self.styles.colors.textLight
@@ -30,6 +38,7 @@ function Context:createLabel(args)
     local labelSpacing = self.styles.dimensions.labelSpacing or 16
     local actualX = xOffset or self.styles.dimensions.contentPadding or 16
 
+    -- FontString Creation
     local label = parent:CreateFontString(nil, "OVERLAY", self.styles.fonts.label)
     label:SetPoint("TOPLEFT", anchorFrame or parent, "TOPLEFT", actualX, yOffset)
     label:SetText(text)

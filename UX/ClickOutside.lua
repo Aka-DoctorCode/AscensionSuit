@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,8 +15,15 @@ if not lib then return end
 local UX = lib.UX or {}
 lib.UX = UX
 
+-- -------------------------------------------------------------------------------
+-- 2. CLICK OUTSIDE LOGIC
+-- -------------------------------------------------------------------------------
+--- Registers a frame to trigger a callback when the user clicks outside its area.
+--- Uses a global blocker button to capture clicks.
 function UX:registerClickOutside(frame, callback)
     if not frame then return end
+    
+    -- Global Blocker Setup
     if not _G["AscensionSuitClickOutsideBlocker"] then
         local blocker = CreateFrame("Button", "AscensionSuitClickOutsideBlocker", UIParent)
         blocker:SetAllPoints()
@@ -28,6 +38,7 @@ function UX:registerClickOutside(frame, callback)
     
     local blocker = _G["AscensionSuitClickOutsideBlocker"]
     
+    -- Sync Blocker Visibility with Frame
     frame:HookScript("OnShow", function()
         blocker:SetFrameLevel(frame:GetFrameLevel() - 1)
         blocker.callback = callback

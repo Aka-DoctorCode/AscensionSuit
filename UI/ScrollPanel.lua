@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,6 +15,10 @@ if not lib then return end
 local Context = lib.Context
 if not Context then return end
 
+-- -------------------------------------------------------------------------------
+-- 2. SCROLL PANEL FACTORY
+-- -------------------------------------------------------------------------------
+--- Creates a standardized ScrollFrame with a managed content child.
 function Context:createScrollPanel(args)
     if not args or not args.parent then return nil, nil end
     local parent = args.parent
@@ -21,6 +28,7 @@ function Context:createScrollPanel(args)
     scrollFrame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
     scrollFrame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -15, 0)
 
+    -- Content Child
     local content = CreateFrame("Frame", nil, scrollFrame)
     local initialWidth = scrollFrame:GetWidth()
     if initialWidth == 0 then initialWidth = 600 end
@@ -30,10 +38,14 @@ function Context:createScrollPanel(args)
     scrollFrame:EnableMouseWheel(true)
     scrollFrame.ScrollBar = _G[scrollName .. "ScrollBar"]
 
+    -- -------------------------------------------------------------------------------
+    -- 3. EVENT HANDLERS & STYLING
+    -- -------------------------------------------------------------------------------
     scrollFrame:SetScript("OnSizeChanged", function(self, width)
         if content and width and width > 0 then content:SetWidth(width) end
     end)
 
+    -- Enhanced Mouse Wheel Logic
     scrollFrame:SetScript("OnMouseWheel", function(self, delta)
         local bar = self.ScrollBar
         if not bar then return end
@@ -45,17 +57,19 @@ function Context:createScrollPanel(args)
         bar:SetValue(newVal)
     end)
 
+    -- Scrollbar Customization
     local scrollBar = scrollFrame.ScrollBar
     if scrollBar then
         if scrollBar.ScrollUpButton then scrollBar.ScrollUpButton:SetAlpha(0.7) end
         if scrollBar.ScrollDownButton then scrollBar.ScrollDownButton:SetAlpha(0.7) end
 
         local thumb = scrollBar:GetThumbTexture()
-        if thumb and self.styles.colors.surfaceHighlight then
-            local r, g, b = unpack(self.styles.colors.surfaceHighlight)
+        if thumb and self.styles.colors.surfaceLight then
+            local r, g, b = unpack(self.styles.colors.surfaceLight)
             thumb:SetVertexColor(r, g, b, 0.8)
         end
 
+        -- Clean up default background textures
         local regions = { scrollBar:GetRegions() }
         for _, region in ipairs(regions) do
             if region:IsObjectType("Texture") and region ~= thumb then

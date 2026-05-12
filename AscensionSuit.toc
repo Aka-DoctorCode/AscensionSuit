@@ -29,13 +29,13 @@ UI\CloseButton.lua
 UI\TabbedInterface.lua
 UI\MainFrame.lua
 UI\LayoutModel.lua
+UI\ContextMenu.lua
 UX\Utilities.lua
 UX\Hover.lua
 UX\Draggable.lua
 UX\Resizable.lua
 UX\Closable.lua
 UX\ClickOutside.lua
-UX\ContextMenu.lua
 UX\PositionManager.lua
 Integration\BlizzardOptions.lua
 Libs\AceAddon-3.0\AceAddon-3.0.xml
@@ -51,4 +51,3 @@ Libs\LibDualSpec-1.0\LibDualSpec-1.0.lua
 Libs\LibSharedMedia-3.0\lib.xml
 Libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
 Libs\AceTimer-3.0\AceTimer-3.0.xml
-MockUI.lua

@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -14,6 +17,10 @@ if not Context then return end
 
 local activeDropdownList = nil
 
+-- -------------------------------------------------------------------------------
+-- 2. GLOBAL HANDLERS
+-- -------------------------------------------------------------------------------
+--- Closes any currently active dropdown menus and hides the overlay blocker.
 function lib:closeAllDropdowns()
     if activeDropdownList and activeDropdownList:IsShown() then
         activeDropdownList:Hide()
@@ -23,6 +30,10 @@ function lib:closeAllDropdowns()
     if blocker then blocker:Hide() end
 end
 
+-- -------------------------------------------------------------------------------
+-- 3. DROPDOWN FACTORY
+-- -------------------------------------------------------------------------------
+--- Creates a customized dropdown component with a scrollable list of options.
 function Context:createDropdown(args)
     if not args or not args.parent then return nil, 0 end
 
@@ -41,10 +52,12 @@ function Context:createDropdown(args)
     local dropHeight = self.styles.dimensions.dropdownHeight or 44
     local btnHeight = self.styles.dimensions.buttonHeight or 28
 
+    -- Base Container
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(dropWidth, dropHeight - 16)
     frame:SetPoint("TOPLEFT", actualX, yOffset - 4)
 
+    -- Dropdown Toggle Button
     local dropdown = CreateFrame("Button", nil, frame, "BackdropTemplate")
     dropdown:SetSize(dropWidth, btnHeight)
     dropdown:SetPoint("TOPLEFT", 0, 0)
@@ -55,14 +68,16 @@ function Context:createDropdown(args)
         insets = { left = 2, right = 2, top = 2, bottom = 2 }
     })
 
-    if self.styles.colors.surfaceHighlight then dropdown:SetBackdropColor(unpack(self.styles.colors.surfaceHighlight)) end
+    if self.styles.colors.surfaceLight then dropdown:SetBackdropColor(unpack(self.styles.colors.surfaceLight)) end
     if self.styles.colors.blackDetail then dropdown:SetBackdropBorderColor(unpack(self.styles.colors.blackDetail)) end
 
+    -- Selection Text
     local dropdownText = dropdown:CreateFontString(nil, "OVERLAY", self.styles.fonts.label)
     dropdownText:SetPoint("LEFT", 10, 0)
     dropdownText:SetPoint("RIGHT", -20, 0)
     dropdownText:SetJustifyH("LEFT")
 
+    -- Visual States
     local styles = self.styles
     dropdown:SetScript("OnEnter", function(self)
         if styles.colors.primary then self:SetBackdropColor(unpack(styles.colors.primary)) end
@@ -70,10 +85,11 @@ function Context:createDropdown(args)
     end)
 
     dropdown:SetScript("OnLeave", function(self)
-        if styles.colors.surfaceHighlight then self:SetBackdropColor(unpack(styles.colors.surfaceHighlight)) end
+        if styles.colors.surfaceLight then self:SetBackdropColor(unpack(styles.colors.surfaceLight)) end
         if styles.colors.blackDetail then self:SetBackdropBorderColor(unpack(styles.colors.blackDetail)) end
     end)
 
+    -- Label Helper
     local function getLabel(val)
         for _, opt in ipairs(options) do
             if opt.value == val then return opt.label end
@@ -85,12 +101,17 @@ function Context:createDropdown(args)
         dropdownText:SetText(getLabel(getter()))
     end
 
+    -- Arrow Icon
     local arrow = dropdown:CreateTexture(nil, "OVERLAY")
     arrow:SetSize(20, 20)
     arrow:SetPoint("RIGHT", -5, 0)
     if self.styles.files.arrow then arrow:SetTexture(self.styles.files.arrow) end
     arrow:SetDesaturated(true)
 
+    -- -------------------------------------------------------------------------------
+    -- 4. DROPDOWN LIST & ITEMS
+    -- -------------------------------------------------------------------------------
+    -- The Pop-up List Frame
     local list = CreateFrame("Frame", nil, _G.UIParent, "BackdropTemplate")
     list:SetPoint("TOPLEFT", dropdown, "BOTTOMLEFT", 0, -2)
     list:SetWidth(dropWidth)
@@ -102,9 +123,10 @@ function Context:createDropdown(args)
         insets = { left = 2, right = 2, top = 2, bottom = 2 }
     })
     if self.styles.colors.surfaceDark then list:SetBackdropColor(unpack(self.styles.colors.surfaceDark)) end
-    if self.styles.colors.surfaceHighlight then list:SetBackdropBorderColor(unpack(self.styles.colors.surfaceHighlight)) end
+    if self.styles.colors.surfaceLight then list:SetBackdropBorderColor(unpack(self.styles.colors.surfaceLight)) end
 
     dropdown:SetScript("OnClick", function()
+        -- Ensure blocker exists
         if not _G["AscensionSuitDropdownBlocker"] then
             local blocker = CreateFrame("Button", "AscensionSuitDropdownBlocker", _G.UIParent)
             blocker:SetAllPoints()
@@ -114,6 +136,7 @@ function Context:createDropdown(args)
             blocker:SetScript("OnClick", function() lib:closeAllDropdowns() end)
         end
 
+        -- Toggle visibility
         if list:IsShown() then
             lib:closeAllDropdowns()
         else
@@ -134,6 +157,7 @@ function Context:createDropdown(args)
         end
     end)
 
+    -- Item Sizing & Scrolling
     local itemH = 20
     local maxListH = 200
     local totalH = #options * itemH + 10
@@ -144,6 +168,7 @@ function Context:createDropdown(args)
     btnContainer:SetSize(dropWidth, totalH)
     btnContainer:SetPoint("TOPLEFT", 0, 0)
 
+    -- Mouse Wheel Scrolling
     if totalH > maxListH then
         list:EnableMouseWheel(true)
         local scrollY = 0
@@ -154,6 +179,7 @@ function Context:createDropdown(args)
         end)
     end
 
+    -- Create Option Buttons
     local localStyles = self.styles
     for i, opt in ipairs(options) do
         local btn = CreateFrame("Button", nil, btnContainer, "BackdropTemplate")
@@ -166,8 +192,9 @@ function Context:createDropdown(args)
         btnText:SetPoint("LEFT", 5, 0)
         btnText:SetText(opt.label)
 
+        -- Item Interactivity
         btn:SetScript("OnEnter", function(self)
-            if localStyles.colors.surfaceHighlight then self:SetBackdropColor(unpack(localStyles.colors.surfaceHighlight)) end
+            if localStyles.colors.surfaceLight then self:SetBackdropColor(unpack(localStyles.colors.surfaceLight)) end
         end)
         btn:SetScript("OnLeave", function(self)
             if localStyles.colors.surfaceDark then self:SetBackdropColor(unpack(localStyles.colors.surfaceDark)) end
@@ -179,6 +206,7 @@ function Context:createDropdown(args)
         end)
     end
 
+    -- UX Integration
     if tooltip and lib.UX and lib.UX.attachTooltip then
         lib.UX:attachTooltip(dropdown, text, tooltip)
     end

@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,6 +15,10 @@ if not lib then return end
 lib.LayoutModel = {}
 lib.LayoutModel.__index = lib.LayoutModel
 
+-- -------------------------------------------------------------------------------
+-- 2. CONSTRUCTOR & RESET
+-- -------------------------------------------------------------------------------
+--- Initializes a new LayoutModel instance.
 function lib.LayoutModel:new(ctx, parent, startY)
     local obj = {
         ctx = ctx or self.ctx,
@@ -28,6 +35,7 @@ function lib.LayoutModel:new(ctx, parent, startY)
     return setmetatable(obj, lib.LayoutModel)
 end
 
+--- Resets the layout state to a new parent and starting position.
 function lib.LayoutModel:reset(parent, startY)
     self.parent = parent
     self.y = startY or -15
@@ -41,7 +49,10 @@ function lib.LayoutModel:reset(parent, startY)
     return self
 end
 
--- Returns yOffset relative to section when inside one, else content-relative y
+-- -------------------------------------------------------------------------------
+-- 3. COORDINATE HELPERS
+-- -------------------------------------------------------------------------------
+--- Returns yOffset relative to section when inside one, else content-relative y.
 function lib.LayoutModel:effectiveY()
     if self.currentSection then
         return self.y - self.sectionStartY
@@ -49,7 +60,7 @@ function lib.LayoutModel:effectiveY()
     return self.y
 end
 
--- Returns xOffset relative to section when inside one, else content-relative x
+--- Returns xOffset relative to section when inside one, else content-relative x.
 function lib.LayoutModel:effectiveX(xOffset)
     if self.currentSection then
         return xOffset - self.sectionStartX
@@ -57,7 +68,7 @@ function lib.LayoutModel:effectiveX(xOffset)
     return xOffset
 end
 
--- Converts section-relative newY back to content-relative and updates self.y
+--- Converts section-relative newY back to content-relative and updates internal cursor.
 function lib.LayoutModel:applyNewY(newY)
     if self.currentSection then
         self.y = newY + self.sectionStartY
@@ -66,6 +77,9 @@ function lib.LayoutModel:applyNewY(newY)
     end
 end
 
+-- -------------------------------------------------------------------------------
+-- 4. COMPONENT WRAPPERS
+-- -------------------------------------------------------------------------------
 function lib.LayoutModel:header(elementID, text)
     local targetParent = self.currentSection or self.parent
     local h, newY = self.ctx:createHeader({
@@ -234,6 +248,10 @@ function lib.LayoutModel:button(elementID, text, tooltip, width, height, xOffset
     return btn
 end
 
+-- -------------------------------------------------------------------------------
+-- 5. SECTION MANAGEMENT
+-- -------------------------------------------------------------------------------
+--- Begins a new layout section with its own backdrop and relative positioning.
 function lib.LayoutModel:beginSection(xOffset, width)
     local section = CreateFrame("Frame", nil, self.parent, "BackdropTemplate")
     local actualX = xOffset or self.currentXOffset or 8
@@ -256,11 +274,12 @@ function lib.LayoutModel:beginSection(xOffset, width)
     })
 
     if self.ctx.styles.colors.surfaceDark then section:SetBackdropColor(unpack(self.ctx.styles.colors.surfaceDark)) end
-    if self.ctx.styles.colors.surfaceHighlight then section:SetBackdropBorderColor(unpack(self.ctx.styles.colors.surfaceHighlight)) end
+    if self.ctx.styles.colors.surfaceLight then section:SetBackdropBorderColor(unpack(self.ctx.styles.colors.surfaceLight)) end
     self.currentSection = section
     self.y = self.y - 4
 end
 
+--- Finalizes the current section, calculating its total height based on elements added.
 function lib.LayoutModel:endSection()
     if self.currentSection then
         self.y = self.y + 8
@@ -273,6 +292,10 @@ function lib.LayoutModel:endSection()
     end
 end
 
+-- -------------------------------------------------------------------------------
+-- 6. COLUMN MANAGEMENT
+-- -------------------------------------------------------------------------------
+--- Begins a columnar layout, allowing side-by-side elements.
 function lib.LayoutModel:beginColumn(xOffset, width)
     if not self.columnStartY then
         self.columnStartY = self.y
@@ -283,12 +306,14 @@ function lib.LayoutModel:beginColumn(xOffset, width)
     self.currentWidth = width
 end
 
+--- Marks the end of a column and updates the maximum height reached.
 function lib.LayoutModel:endColumn()
     if self.y < self.columnMaxY then
         self.columnMaxY = self.y
     end
 end
 
+--- Finalizes the column layout and updates the parent container's height.
 function lib.LayoutModel:columnsFinalize(contentFrame, bottomPadding)
     self.y = self.columnMaxY
     self.columnStartY = nil

@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,6 +15,11 @@ if not lib then return end
 local Context = lib.Context
 if not Context then return end
 
+-- -------------------------------------------------------------------------------
+-- 2. STEP BUTTON FACTORY
+-- -------------------------------------------------------------------------------
+--- Creates a standardized button for incrementing or decrementing values (+/-).
+--- @param args table: Configuration (parent, symbol, size, onClick, styles)
 function Context:createStepButton(args)
     if not args or not args.parent or not args.symbol or not args.size or not args.onClick then 
         return nil 
@@ -23,6 +31,7 @@ function Context:createStepButton(args)
     local onClick = args.onClick
     local styles = args.styles or self.styles
 
+    -- Base Frame
     local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
     btn:SetSize(size, size)
     btn:SetBackdrop({
@@ -32,13 +41,14 @@ function Context:createStepButton(args)
         insets   = { left = 1, right = 1, top = 1, bottom = 1 }
     })
     
-    if styles.colors.surfaceHighlight then
-        btn:SetBackdropColor(unpack(styles.colors.surfaceHighlight))
+    if styles.colors.surfaceLight then
+        btn:SetBackdropColor(unpack(styles.colors.surfaceLight))
     end
     if styles.colors.blackDetail then
         btn:SetBackdropBorderColor(unpack(styles.colors.blackDetail))
     end
 
+    -- Visual Symbols (+ or -)
     local iconTextures = {}
     local hLine = btn:CreateTexture(nil, "OVERLAY")
     if styles.textures.bar then hLine:SetTexture(styles.textures.bar) end
@@ -58,6 +68,9 @@ function Context:createStepButton(args)
 
     btn.iconTextures = iconTextures
 
+    -- -------------------------------------------------------------------------------
+    -- 3. EVENT HANDLERS
+    -- -------------------------------------------------------------------------------
     local function setIconColor(r, g, b)
         for _, tex in ipairs(iconTextures) do
             tex:SetVertexColor(r, g, b, 1)
@@ -71,18 +84,23 @@ function Context:createStepButton(args)
     end)
     
     btn:SetScript("OnLeave", function(self)
-        if styles.colors.surfaceHighlight then self:SetBackdropColor(unpack(styles.colors.surfaceHighlight)) end
+        if styles.colors.surfaceLight then self:SetBackdropColor(unpack(styles.colors.surfaceLight)) end
         if styles.colors.blackDetail then self:SetBackdropBorderColor(unpack(styles.colors.blackDetail)) end
-        self._holding = false
+        self._holding = false -- Stop repeat logic on leave
         if styles.colors.textLight then setIconColor(unpack(styles.colors.textLight)) end
     end)
     
+    -- Press & Repeat Logic
     btn:SetScript("OnMouseDown", function(self)
+        -- Visual Feedback (Pressed oFFset)
         for _, tex in ipairs(self.iconTextures) do
             tex:ClearAllPoints()
             tex:SetPoint("CENTER", 1, -1)
         end
-        onClick()
+        
+        onClick() -- First click
+        
+        -- Start Repeat Timer
         self._holdId = (self._holdId or 0) + 1
         local currentHold = self._holdId
         self._holding = true
@@ -91,7 +109,7 @@ function Context:createStepButton(args)
                 if not self:IsVisible() then self._holding = false end
                 if self._holding and self._holdId == currentHold then
                     onClick()
-                    C_Timer.After(0.08, doRepeat)
+                    C_Timer.After(0.08, doRepeat) -- Repeating rate
                 end
             end
             if not self:IsVisible() then self._holding = false end
@@ -102,11 +120,12 @@ function Context:createStepButton(args)
     end)
     
     btn:SetScript("OnMouseUp", function(self)
+        -- Visual Feedback (Reset oFFset)
         for _, tex in ipairs(self.iconTextures) do
             tex:ClearAllPoints()
             tex:SetPoint("CENTER", 0, 0)
         end
-        self._holding = false
+        self._holding = false -- Stop repeat logic
     end)
     
     return btn

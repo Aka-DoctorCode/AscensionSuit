@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,6 +15,10 @@ if not lib then return end
 local Context = lib.Context
 if not Context then return end
 
+-- -------------------------------------------------------------------------------
+-- 2. COLOR PICKER FACTORY
+-- -------------------------------------------------------------------------------
+--- Creates a color picker component that interfaces with the Blizzard ColorPickerFrame.
 function Context:createColorPicker(args)
     if not args or not args.parent then return nil, 0 end
 
@@ -29,24 +36,32 @@ function Context:createColorPicker(args)
     local pickerSize = self.styles.dimensions.colorPickerSize or 20
     local pickerSpacing = self.styles.dimensions.colorPickerSpacing or 24
 
+    -- Base Button (The Swatch)
     local button = CreateFrame("Button", nil, parent)
     button:SetSize(pickerSize, pickerSize)
     button:SetPoint("TOPLEFT", actualX, yOffset)
 
+    -- Color Texture
     local texture = button:CreateTexture(nil, "OVERLAY")
     texture:SetAllPoints()
     if getter then texture:SetColorTexture(getter()) end
     button.tex = texture
 
+    -- White Border/Background
     local background = button:CreateTexture(nil, "BACKGROUND")
     background:SetPoint("TOPLEFT", -1, 1)
     background:SetPoint("BOTTOMRIGHT", 1, -1)
     background:SetColorTexture(1, 1, 1, 1)
 
+    -- Label
     local label = button:CreateFontString(nil, "OVERLAY", self.styles.fonts.label)
     label:SetPoint("LEFT", button, "RIGHT", 10, 0)
     label:SetText(text)
 
+    -- -------------------------------------------------------------------------------
+    -- 3. CALLBACKS & LOGIC
+    -- -------------------------------------------------------------------------------
+    --- Internal callback for handling color picker changes.
     local function colorCallback(restore)
         local colorPicker = _G["ColorPickerFrame"]
         local r, g, b, a
@@ -80,6 +95,7 @@ function Context:createColorPicker(args)
             b = b or 1
         }
 
+        -- Handle API changes for Retail/Classic versions
         if colorPicker and colorPicker.SetupColorPickerAndShow then
             colorPicker:SetupColorPickerAndShow(info)
         elseif colorPicker then
@@ -93,6 +109,7 @@ function Context:createColorPicker(args)
         end
     end)
 
+    -- UX Integration
     if tooltip and lib.UX and lib.UX.attachTooltip then 
         lib.UX:attachTooltip(button, text, tooltip) 
     end

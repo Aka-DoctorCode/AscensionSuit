@@ -1,10 +1,7 @@
 <h1>@project-version@</h1>
 <ul>
-    <li>Added <code>createMainFrame</code>: A standardized method to create the main application window with header, close button, and tabbed sidebar navigation.</li>
-    <li>Centralized window creation logic to reduce boilerplate code in consumer addons.</li>
-    <li>The use of blizzard asset has been reduce and replaced by my own created assets using just a few textures.</li>
-    <li>Improved the overall performance of the addon.</li>
-    <li>Astethic improvements across the board.</li>
+    <li>Framework-wide documentation standardization: Implemented consistent section-based delimiters across all UI, UX, and Integration modules.</li>
+    <li>Updated color scheme.</li>
 </ul>
 <br>
 

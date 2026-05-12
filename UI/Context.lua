@@ -5,31 +5,39 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
 
+-- -------------------------------------------------------------------------------
+-- 2. DEFAULT STYLES
+-- -------------------------------------------------------------------------------
+lib.DefaultStyles = {
+    colors = {
     -- primary         = { 0.300, 0.000, 0.400, 1.00 },--#4C0066FF
     -- sidebarAccent   = { 0.000, 0.480, 1.000, 0.95 },--#0078FFFF
     -- sidebarActive   = { 0.000, 0.400, 1.000, 0.20 },--#0066FF33
-    -- primaryAlpha    = { 0.750, 0.500, 0`.980, 0.15 },--#BF80FA33
+        -- Backgrounds Colors
+        mainBackground  = {0.050,0.050,0.050,0.95},--#0D0D0DF2
+        surfaceDark     = {0.150,0.150,0.150,0.90},--#262626E6
+        surfaceLight    = {0.250,0.250,0.250,1.00},--#404040FF
+        surfaceHover    = {0.250,0.250,0.250,0.60},--#40404099
 
-lib.DefaultStyles = {
-    colors = {
-        -- backgrounds colors
-        backgroundDark  = { 0.020, 0.020, 0.020, 0.95 },--#050505F2
-        surfaceDark     = { 0.050, 0.040, 0.080, 1.00 },--#0D0A14FF
-        surfaceHighlight= { 0.170, 0.140, 0.240, 1.00 },--#2B243DFF
-        -- Details Colors
-        primary         = { 0.750, 0.500, 0.980, 1.00 },--#BF80FAFF
-        sidebarAccent   = { 0.400, 0.075, 0.925, 0.90 },--#6601F899
-        sidebarActive   = { 0.400, 0.075, 0.925, 0.20 },--#6601F833
-        sidebarHover    = { 0.200, 0.200, 0.200, 0.50 },--#33333380
-        error           = { 1.000, 0.270, 0.270, 1.00 },--#FF4444FF
-        blackDetail     = { 0.100, 0.100, 0.100, 1.00 },--#191919FF
+        -- Detail Colors
+        primary         = {0.200,0.000,0.500,1.00},--#330078FF
+        primaryAlpha    = {0.750,0.500,0.980,0.15},--#BF80FA33
+        sidebarAccent   = {0.400,0.075,0.925,0.90},--#6601F899
+        sidebarActive   = {0.400,0.075,0.925,0.20},--#6601F833
+        sidebarHover    = {0.400,0.000,0.925,0.80},--#6601F8CC
+        redDetail       = {1.000,0.270,0.270,1.00},--#FF4444FF
+        blackDetail     = {0.000,0.000,0.000,1.00},--#000000FF
+
         -- Text Colors
-        gold            = { 0.930, 0.730, 0.120, 1.00 },--#EDBA1FFF
-        textLight       = { 0.900, 0.900, 0.900, 1.00 },--#E6E6E6FF
+        gold            = {0.930,0.730,0.120,1.00},--#EDBA1FFF
+        textLight       = {1.000,1.000,1.000,1.00},--#FFFFFFFF
     },
     files = {
         bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
@@ -45,8 +53,8 @@ lib.DefaultStyles = {
         contentPadding     = 16,  -- Internal margin for layout containers
         headerSpacing      = 32,  -- Vertical gap between section headers
         labelSpacing       = 16,  -- Default spacing for text labels
-        titleTop           = -16, -- Vertical oFFset for page titles
-        titleLeft          = 16,  -- Horizontal oFFset for page titles
+        titleTop           = -16, -- Vertical offset for page titles
+        titleLeft          = 16,  -- Horizontal offset for page titles
         tabWidth           = 144, -- Width of individual interface tabs
         tabHeight          = 30,  -- Height of individual interface tabs
         tabSpacing         = 6,   -- Horizontal gap between tabs
@@ -73,9 +81,23 @@ lib.DefaultStyles = {
     }
 }
 
+-- -------------------------------------------------------------------------------
+-- 3. CONTEXT OBJECT DEFINITION
+-- -------------------------------------------------------------------------------
 local Context = {}
 Context.__index = Context
 
+--- Creates a specialized layout model within the context.
+function Context:createLayoutModel(parent, startY)
+    if lib.LayoutModel then
+        return lib.LayoutModel:new(self, parent, startY)
+    end
+end
+
+-- -------------------------------------------------------------------------------
+-- 4. CONTEXT FACTORY
+-- -------------------------------------------------------------------------------
+--- Initializes a new Context instance for an addon.
 function lib:CreateContext()
     local ctx = setmetatable({
         styles = lib.DefaultStyles,
@@ -89,11 +111,7 @@ function lib:CreateContext()
     return ctx
 end
 
-
-function Context:createLayoutModel(parent, startY)
-    if lib.LayoutModel then
-        return lib.LayoutModel:new(self, parent, startY)
-    end
-end
-
+-- -------------------------------------------------------------------------------
+-- 5. EXPORTS
+-- -------------------------------------------------------------------------------
 lib.Context = Context

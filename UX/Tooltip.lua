@@ -5,6 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-- -------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- -------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,7 +15,11 @@ if not lib then return end
 local UX = lib.UX or {}
 lib.UX = UX
 
--- Persistent custom tooltip frame
+-- -------------------------------------------------------------------------------
+-- 2. TOOLTIP FACTORY
+-- -------------------------------------------------------------------------------
+--- Internal helper to retrieve or create the persistent custom tooltip singleton.
+--- Configures a premium look with deep dark background and large typography.
 local function getCustomTooltip()
     if lib.customTooltip then return lib.customTooltip end
 
@@ -49,6 +56,11 @@ local function getCustomTooltip()
     return f
 end
 
+-- -------------------------------------------------------------------------------
+-- 3. PUBLIC API
+-- -------------------------------------------------------------------------------
+--- Attaches a custom stylized tooltip to a frame.
+--- Automatically handles OnEnter and OnLeave script hooks.
 function UX:attachTooltip(frame, title, description)
     if not frame or not description or description == "" then return end
     
@@ -56,13 +68,14 @@ function UX:attachTooltip(frame, title, description)
     local oldEnter = frame:GetScript("OnEnter")
     local oldLeave = frame:GetScript("OnLeave")
 
+    -- Mouse Over Hook
     frame:SetScript("OnEnter", function(self)
         if oldEnter then oldEnter(self) end
         
         tooltip.title:SetText(title or "Option Info")
         tooltip.desc:SetText(description)
         
-        -- Adjust height based on content
+        -- Adjust height dynamically based on content length
         local contentHeight = tooltip.title:GetHeight() + tooltip.desc:GetHeight() + 32
         tooltip:SetSize(304, contentHeight)
         
@@ -71,6 +84,7 @@ function UX:attachTooltip(frame, title, description)
         tooltip:Show()
     end)
     
+    -- Mouse Exit Hook
     frame:SetScript("OnLeave", function(self)
         if oldLeave then oldLeave(self) end
         tooltip:Hide()
