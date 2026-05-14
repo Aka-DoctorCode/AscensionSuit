@@ -5,9 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- 1. INITIALIZATION
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -15,23 +15,23 @@ if not lib then return end
 local Context = lib.Context
 if not Context then return end
 
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- 2. LABEL FACTORY
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 --- Creates a standardized text label with outline and custom color.
-function Context:createLabel(args)
-    if not args or not args.parent or not args.text or not args.yOffset then 
+function Context:createLabel(options)
+    if not options or not options.parent or not options.text or not options.yOffset then 
         return nil, 0 
     end
 
-    local parent = args.parent
-    local text = args.text
-    local yOffset = args.yOffset
-    local xOffset = args.xOffset
-    local anchorFrame = args.anchorFrame
+    local parent = options.parent
+    local text = options.text
+    local yOffset = options.yOffset
+    local xOffset = options.xOffset
+    local anchorFrame = options.anchorFrame
 
     -- Style Resolution
-    local color = args.color
+    local color = options.color
     if not color and self.styles and self.styles.colors then
         color = self.styles.colors.textLight
     end
@@ -43,8 +43,11 @@ function Context:createLabel(args)
     label:SetPoint("TOPLEFT", anchorFrame or parent, "TOPLEFT", actualX, yOffset)
     label:SetText(text)
     
-    local font, size, flags = label:GetFont()
-    label:SetFont(font, size, "OUTLINE")
+    -- Customize font size and outline
+    local fontPath, defaultSize, defaultFlags = label:GetFont()
+    local finalSize = options.size or defaultSize
+    local finalOutline = options.outline or "OUTLINE"
+    label:SetFont(fontPath, finalSize, finalOutline)
     
     if color then
         label:SetTextColor(unpack(color))

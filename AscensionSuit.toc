@@ -12,7 +12,12 @@
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 AscensionSuit.lua
+
 UI\Context.lua
+Components\Frame.lua
+Components\View\UI.lua
+Components\View\Header.lua
+
 UI\Header.lua
 UI\Label.lua
 UX\Tooltip.lua
@@ -27,7 +32,7 @@ UI\Input.lua
 UI\Button.lua
 UI\CloseButton.lua
 UI\TabbedInterface.lua
-UI\MainFrame.lua
+# UI\MainFrame.lua
 UI\LayoutModel.lua
 UI\ContextMenu.lua
 UX\Utilities.lua

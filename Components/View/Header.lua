@@ -5,9 +5,9 @@
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- 1. INITIALIZATION
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 local MAJOR = "AscensionSuit-UI"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -15,34 +15,32 @@ if not lib then return end
 local Context = lib.Context
 if not Context then return end
 
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- 2. HEADER FACTORY
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 --- Creates a stylized section header with thick outline and custom color.
-function Context:createHeader(args)
-    local parent = args.parent
-    local text = args.text
-    local yOffset = args.yOffset
-    local xOffset = args.xOffset
-    local anchorFrame = args.anchorFrame
+function Context:createHeader(options)
+    local styles = self.styles
+    local parent = options.parent
+    local text = options.text
+    
+    -- Position Control
+    local anchorFrame = options.anchorFrame
+    local yOffset = options.yOffset or 0
+    local xOffset = options.xOffset or 0
 
     -- Style Resolution
-    local color = args.color
-    if not color and self.styles and self.styles.colors then
-        color = self.styles.colors.gold
-    end
-    local leftPadding = self.styles.dimensions.contentPadding or 16
-    local actualX = xOffset or leftPadding
+    local color = options.color or styles.colors.gold
 
     -- FontString Creation
     local header = parent:CreateFontString(nil, "OVERLAY", self.styles.fonts.header)
-    header:SetPoint("TOPLEFT", anchorFrame or parent, "TOPLEFT", actualX, yOffset)
+    header:SetPoint("TOPLEFT", anchorFrame or parent, "TOPLEFT", xOffset, yOffset)
     header:SetText(text)
     
     -- Customize font size and outline
     local fontPath, defaultSize, defaultFlags = header:GetFont()
-    local finalSize = args.size or defaultSize
-    local finalOutline = args.outline or "THICKOUTLINE"
+    local finalSize = options.size or defaultSize
+    local finalOutline = options.outline or "THICKOUTLINE"
     header:SetFont(fontPath, finalSize, finalOutline)
 
     if color then

@@ -1,7 +1,6 @@
 <h1>@project-version@</h1>
 <ul>
-    <li>Framework-wide documentation standardization: Implemented consistent section-based delimiters across all UI, UX, and Integration modules.</li>
-    <li>Updated color scheme.</li>
+    <li>Changes to UI elements</li>
 </ul>
 <br>
 

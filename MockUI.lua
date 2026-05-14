@@ -2,7 +2,6 @@
 -- Project: AscensionSuit
 -- Author: Aka-DoctorCode
 -- File: MockUI.lua
--- Description: Comprehensive UI Gallery for auditing components and themes.
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
@@ -10,9 +9,9 @@ local addonName, addonTable = ...
 local AscensionUI = LibStub:GetLibrary("AscensionSuit-UI")
 if not AscensionUI then return end
 
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- 1. CONTEXT INITIALIZATION
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 local ctx = AscensionUI:CreateContext()
 
 -- Global adjustments for the gallery layout
@@ -20,9 +19,9 @@ ctx.styles.dimensions.tabHeight = 26
 ctx.styles.dimensions.tabSpacing = 4
 local styles = ctx.styles
 
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- 2. MOCK DATA
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 --- Database for simulating state changes in the gallery.
 local mockDB = {
     check = true,
@@ -34,9 +33,9 @@ local mockDB = {
     counter = 0
 }
 
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- 3. UTILITIES
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 --- Displays which colors are impacting a specific component tab.
 local function showComponentColors(panel, colors)
     local py = -280 -- Offset to accommodate blueprint visuals
@@ -62,9 +61,9 @@ local function showComponentColors(panel, colors)
     panel.content:SetHeight(math.abs(py) + 50)
 end
 
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- 4. PALETTE MENU LOGIC
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 --- Creates a visual palette viewer showing all defined theme colors.
 local function CreatePaletteFrame(parent)
     local pFrame = CreateFrame("Frame", "AscensionSuitPaletteFrame", parent or UIParent, "BackdropTemplate")
@@ -142,9 +141,9 @@ local function CreatePaletteFrame(parent)
     return pFrame
 end
 
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- 5. MAIN GALLERY CREATION
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 --- Orchestrates the creation of the entire UI component gallery.
 local function CreateMockUI()
     -- Navigation Tab Names
@@ -467,27 +466,27 @@ local function CreateMockUI()
     frame:Show()
 end
 
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- 6. SLASH COMMANDS
--- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- /mockui: Toggles the main component gallery
-SLASH_MOCKUI1 = "/mockui"
-SlashCmdList["MOCKUI"] = function()
-    if AscensionSuitMockFrame and AscensionSuitMockFrame:IsShown() then
-        AscensionSuitMockFrame:Hide()
-    else
-        CreateMockUI()
-    end
-end
+-- SLASH_MOCKUI1 = "/mockui"
+-- SlashCmdList["MOCKUI"] = function()
+--     if AscensionSuitMockFrame and AscensionSuitMockFrame:IsShown() then
+--         AscensionSuitMockFrame:Hide()
+--     else
+--         CreateMockUI()
+--     end
+-- end
 
--- /palette: Opens the standalone color palette
-SLASH_ASPALETTE1 = "/palette"
-SlashCmdList["ASPALETTE"] = function()
-    if AscensionSuitPaletteFrame and not AscensionSuitPaletteFrame:GetParent() then
-        AscensionSuitPaletteFrame:SetShown(not AscensionSuitPaletteFrame:IsShown())
-    else
-        if AscensionSuitPaletteFrame then AscensionSuitPaletteFrame:Hide() end
-        local p = CreatePaletteFrame(nil)
-        p:Show()
-    end
-end
+-- -- /palette: Opens the standalone color palette
+-- SLASH_ASPALETTE1 = "/palette"
+-- SlashCmdList["ASPALETTE"] = function()
+--     if AscensionSuitPaletteFrame and not AscensionSuitPaletteFrame:GetParent() then
+--         AscensionSuitPaletteFrame:SetShown(not AscensionSuitPaletteFrame:IsShown())
+--     else
+--         if AscensionSuitPaletteFrame then AscensionSuitPaletteFrame:Hide() end
+--         local p = CreatePaletteFrame(nil)
+--         p:Show()
+--     end
+-- end

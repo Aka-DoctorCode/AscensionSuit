@@ -41,7 +41,7 @@ lib.DefaultStyles = {
     },
     files = {
         bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
         arrow    = "Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up",
         close    = "Interface\\Buttons\\UI-Panel-CloseButton",
         maximize = "Interface\\Buttons\\ui-panel-hidebutton-up",

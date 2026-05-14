@@ -64,8 +64,8 @@ function Context:createDropdown(args)
     dropdown:SetBackdrop({
         bgFile = self.styles.files.bgFile,
         edgeFile = self.styles.files.edgeFile,
-        edgeSize = 8,
-        insets = { left = 2, right = 2, top = 2, bottom = 2 }
+        edgeSize = 2,
+        insets = { left = 2, right = 3, top = 2, bottom = 3 }
     })
 
     if self.styles.colors.surfaceLight then dropdown:SetBackdropColor(unpack(self.styles.colors.surfaceLight)) end
