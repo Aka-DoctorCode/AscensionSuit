@@ -6,15 +6,15 @@
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
 local addonName, addonTable = ...
-local AscensionUI = LibStub:GetLibrary("AscensionSuit-UI")
-if not AscensionUI then return end
+local AscensionFactory = LibStub:GetLibrary("AscensionFactory")
+if not AscensionFactory then return end
 
 -------------------------------------------------------------------------------
 -- CONTEXT INITIALIZATION
 -------------------------------------------------------------------------------
 
-local ctx = AscensionUI:CreateContext()
-local styles = ctx.styles
+local uiContext = AscensionFactory:CreateContext()
+local styles = uiContext.styles
 
 -------------------------------------------------------------------------------
 -- PALETTE MENU LOGIC
@@ -22,6 +22,7 @@ local styles = ctx.styles
 --- Creates a visual palette viewer showing all defined theme colors.
 local function CreatePaletteFrame(parent)
     local pFrame = CreateFrame("Frame", "AscensionSuitPaletteFrame", parent or UIParent, "BackdropTemplate")
+
     pFrame:SetSize(200, 580)
     pFrame:SetFrameStrata("TOOLTIP")
     
@@ -31,46 +32,34 @@ local function CreatePaletteFrame(parent)
     else
         -- Standalone: Anchor to center and enable UX behaviors
         pFrame:SetPoint("CENTER")
-        if AscensionUI.UX then
-            AscensionUI.UX:makeMovable(pFrame)
-            AscensionUI.UX:makeClosableWithEscape(pFrame)
+        if AscensionFactory.UX then
+            AscensionFactory.UX:makeMovable(pFrame)
+            AscensionFactory.UX:makeClosableWithEscape(pFrame)
         end
     end
 
     pFrame:SetBackdrop({
-        bgFile = styles.files.bgFile,
-        edgeFile = styles.files.edgeFile,
+        bgFile = styles.textures.background,
+        edgeFile = styles.textures.edge,
         edgeSize = 1,
         insets = { left = 1, right = 1, top = 1, bottom = 1 }
     })
-    local bg = styles.colors.mainBackground
+    local bg = styles.colors.background
     pFrame:SetBackdropColor(bg[1], bg[2], bg[3], 0.25)
     pFrame:SetBackdropBorderColor(unpack(styles.colors.surfaceLight))
 
     -- Header
-    ctx:createHeader({ parent = pFrame, text = "Global Palette", yOffset = -15 })
-
-    -- Add Close Button
-    local closeBtn = ctx:createCloseButton(pFrame, function() pFrame:Hide() end)
-    closeBtn:SetPoint("TOPRIGHT", 5, 5)
+    uiContext:createHeader({ parent = pFrame, text = "Global Palette", yOffset = -15 })
 
     local py = -45
     
-    local colorKeys = {
-        "mainBackground",
-        "surfaceDark",
-        "surfaceLight",
-        "surfaceHover",
-        "primary",
-        "primaryAlpha",
-        "sidebarAccent",
-        "sidebarActive",
-        "sidebarHover",
-        "redDetail",
-        "blackDetail",
-        "gold",
-        "textLight",
-    }
+    local colorKeys = {}
+    if styles and styles.colors then
+        for key in pairs(styles.colors) do
+            table.insert(colorKeys, key)
+        end
+        table.sort(colorKeys)
+    end
 
     for _, key in ipairs(colorKeys) do
         local color = styles.colors[key]
@@ -101,9 +90,25 @@ end
 -------------------------------------------------------------------------------
 --- Orchestrates the creation of the entire UI component gallery.
 local function CreateMockUI()
-    local frame = ctx:createMainFrame({
-        width = 850,
+    local frame = uiContext:createMainFrame({
+        name = "AscensionSuitMockFrame",
+        width = 1000,
         height = 500,
+    })
+    local header, nextY = uiContext:createHeader({
+        parent = frame,
+        text = "Ascension Factory",
+        xOffset = 10,
+        yOffset = -10,
+        fontSize = 34,
+        spaceBelow = 4,
+    })
+
+    -- Attach Tabbed Interface (Sidebar)
+    uiContext:createTabbedInterface({
+        parent = frame,
+        startY = nextY,
+        initialIndex = 1,
     })
 
     -- Sidebar Palette
@@ -115,7 +120,7 @@ end
 -- SLASH COMMANDS
 -------------------------------------------------------------------------------
 
-SLASH_MOCKUI1 = "/mockui"
+SLASH_MOCKUI1 = "/afui"
 SlashCmdList["MOCKUI"] = function()
     if AscensionSuitMockFrame and AscensionSuitMockFrame:IsShown() then
         AscensionSuitMockFrame:Hide()
@@ -125,7 +130,7 @@ SlashCmdList["MOCKUI"] = function()
 end
 
 -- /palette: Opens the standalone color palette
-SLASH_ASPALETTE1 = "/palette"
+SLASH_ASPALETTE1 = "/afp"
 SlashCmdList["ASPALETTE"] = function()
     if AscensionSuitPaletteFrame and not AscensionSuitPaletteFrame:GetParent() then
         AscensionSuitPaletteFrame:SetShown(not AscensionSuitPaletteFrame:IsShown())
