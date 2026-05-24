@@ -31,11 +31,11 @@ function Context:createMainFrame(options)
     frame:SetBackdrop({
         bgFile = styles.textures.background,
         edgeFile = styles.textures.flat,
-        edgeSize = 3,
+        edgeSize = 2,
         insets = { left = 2, right = 2, top = 3, bottom = 3 }
     })
     frame:SetBackdropColor(unpack(styles.colors.background))
-    frame:SetBackdropBorderColor(unpack(styles.colors.primary))
+    frame:SetBackdropBorderColor(unpack(styles.colors.border))
 
     if ux then
         ux:makeMovable(frame)

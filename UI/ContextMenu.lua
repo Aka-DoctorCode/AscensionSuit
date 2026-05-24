@@ -72,6 +72,7 @@ end
 --- Internal helper to create the actual menu frame and populate its buttons.
 function UX:createContextMenu(parent, options)
     local menu = CreateFrame("Frame", nil, parent or UIParent, "BackdropTemplate")
+    menu:SetClampedToScreen(true)
     local Context = lib.Context
     local styles = Context and Context.styles or lib.DefaultStyles
     

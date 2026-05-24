@@ -105,11 +105,32 @@ local function CreateMockUI()
     })
 
     -- Attach Tabbed Interface (Sidebar)
-    uiContext:createTabbedInterface({
+    local tabbedInterface = uiContext:createTabbedInterface({
         parent = frame,
         startY = nextY,
         initialIndex = 1,
+        tabs = { "General", "Appearance", "Combat", "Advanced" }
     })
+
+    -- General Panel
+    local generalLayout = uiContext:createLayoutModel(tabbedInterface.panels[1], -10)
+    generalLayout:header("generalHeader", "General Settings")
+    generalLayout:label("generalDesc", "Configure core options here.", 15)
+
+    -- Appearance Panel
+    local appearanceLayout = uiContext:createLayoutModel(tabbedInterface.panels[2], -10)
+    appearanceLayout:header("appearanceHeader", "Appearance Settings")
+    appearanceLayout:label("appearanceDesc", "Customize colors and themes.", 15)
+
+    -- Combat Panel
+    local combatLayout = uiContext:createLayoutModel(tabbedInterface.panels[3], -10)
+    combatLayout:header("combatHeader", "Combat Settings")
+    combatLayout:label("combatDesc", "Adjust combat-related behaviors.", 15)
+
+    -- Advanced Panel
+    local advancedLayout = uiContext:createLayoutModel(tabbedInterface.panels[4], -10)
+    advancedLayout:header("advancedHeader", "Advanced Settings")
+    advancedLayout:label("advancedDesc", "Danger zone settings.", 15)
 
     -- Sidebar Palette
     CreatePaletteFrame(frame)

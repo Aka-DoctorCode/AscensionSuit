@@ -20,13 +20,10 @@ if not Context then return end
 -------------------------------------------------------------------------------
 -- Creates a complex UI structure with a vertical sidebar for navigation and multiple content panels.
 function Context:createTabbedInterface(options)
+    local styles = self.styles
     local parent = options.parent
     local startY = options.startY
     local initialIndex = options.initialIndex
-    
-    assert(initialIndex, "createTabbedInterface: initialIndex is required!")
-
-    local styles = self.styles
     local tabs = {}
     local panels = {}
     local activeTab = initialIndex
@@ -61,70 +58,93 @@ function Context:createTabbedInterface(options)
     end
 
     -------------------------------------------------------------------------------
-    -- 4 SIDEBAR CONTAINER
+    -- 2.2 SIDEBAR CONTAINER
     -------------------------------------------------------------------------------
+    -- Creates the vertical sidebar container for tab navigation.
     local sidebar = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     sidebar:SetWidth(160)
-    -- Locate below the header and take the rest of vertical space
     sidebar:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, startY)
-    sidebar:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 10, 8)
-    
+    sidebar:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 10, 8)    
     sidebar:SetBackdrop({
         bgFile = styles.textures.background,
         insets = { left = 1, right = 1, top = 1, bottom = 1 }
     })
-    sidebar:SetBackdropColor(unpack(styles.colors.surfaceDark))
-    sidebar:SetBackdropBorderColor(unpack(styles.colors.surfaceLight))
+    sidebar:SetBackdropColor(unpack(styles.colors.surfaceLight))
+    sidebar:SetBackdropBorderColor(unpack(styles.colors.border))
 
     -------------------------------------------------------------------------------
-    -- 5. TAB BUTTON FACTORY
+    -- 2.3 TAB BUTTON FACTORY
     -------------------------------------------------------------------------------
-    --- Helper to create individual navigation buttons in the sidebar.
-    local lastTab = nil
-    local function createTabButton(text, index)
+    local layout = self:createLayoutModel(sidebar, -5)
+    local function sidebarButton(options)
         local button = CreateFrame("Button", nil, sidebar, "BackdropTemplate")
-        button:SetHeight(32)
-        button:SetPoint("LEFT", sidebar, "LEFT", 4, 0)
-        button:SetPoint("RIGHT", sidebar, "RIGHT", -4, 0)
-        
-        if lastTab then
-            button:SetPoint("TOP", lastTab, "BOTTOM", 0, -2)
-        else
-            button:SetPoint("TOP", sidebar, "TOP", 0, -10)
-        end
-        lastTab = button
-
-        button:SetBackdrop({ bgFile = styles.textures.background })
+        button:SetHeight(22)
+        button:SetPoint("TOPLEFT", sidebar, "TOPLEFT", 0, layout.y)
+        button:SetPoint("TOPRIGHT", sidebar, "TOPRIGHT", 0, layout.y)
+        layout.y = layout.y - 26
+        button:SetBackdrop({bgFile = styles.textures.flat, edgeSize = 0})
         button:SetBackdropColor(0, 0, 0, 0)
-        
-        -- Text Label
-        local label = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        label:SetPoint("LEFT", 12, 0)
-        label:SetText(text)
-        label:SetTextColor(unpack(styles.colors.white))
-        
-        -- Active Accent Line
-        button.accent = button:CreateTexture(nil, "OVERLAY")
-        button.accent:SetWidth(4)
-        button.accent:SetPoint("TOPLEFT")
-        button.accent:SetPoint("BOTTOMLEFT")
-        button.accent:SetColorTexture(unpack(styles.colors.primary))
-        button.accent:Hide()
-        
-        -- Hover State
-        local highlight = button:CreateTexture(nil, "HIGHLIGHT")
-        highlight:SetAllPoints(button)
-        if styles.colors.primaryHover then
-            highlight:SetColorTexture(unpack(styles.colors.primaryHover))
-        else
-            highlight:SetColorTexture(1, 1, 1, 0.1)
-        end
-        
-        button:SetScript("OnClick", function()
-            selectTab(index)
+
+        self:createLabel({
+            parent = button,
+            text = options.text,
+            selfAnchorPoint = "LEFT",
+            anchorToPoint = "LEFT",
+            xOffset = 10,
+            yOffset = 0
+        })
+
+        local accent = button:CreateTexture(nil, "OVERLAY")
+        accent:SetWidth(8)
+        accent:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
+        accent:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 0, 0)
+        accent:SetColorTexture(unpack(styles.colors.primary))
+        accent:Hide()
+        button.accent = accent
+
+        button:SetScript("OnClick", options.onClick)
+        button:SetScript("OnEnter", function()
+            if activeTab ~= options.index then
+                button:SetBackdropColor(unpack(styles.colors.primaryHover))
+            end
         end)
-        
-        table.insert(tabs, button)
+        button:SetScript("OnLeave", function()
+            if activeTab ~= options.index then
+                button:SetBackdropColor(0, 0, 0, 0)
+            end
+        end)
+
         return button
     end
+
+    for i, tabName in ipairs(options.tabs) do
+        local panel = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+        panel:SetPoint("TOPLEFT", sidebar, "TOPRIGHT", 10, 0)
+        panel:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -10, 8)
+        panel:SetBackdrop({
+            bgFile = styles.textures.background
+        })
+        panel:SetBackdropColor(unpack(styles.colors.panelBackground))
+        panel:Hide()
+        panels[i] = panel
+
+        local btn = sidebarButton({
+            text = tabName,
+            index = i,
+            onClick = function()
+                selectTab(i)
+            end
+        })
+        tabs[i] = btn
+    end
+
+    if initialIndex then
+        selectTab(initialIndex)
+    end
+
+    return {
+        sidebar = sidebar,
+        tabs = tabs,
+        panels = panels
+    }
 end

@@ -28,6 +28,7 @@ function Context:createMainFrame(options)
     frame:SetSize(options.width or 850, options.height or 500)
     frame:SetPoint("CENTER")
     frame:SetFrameStrata("DIALOG")
+    frame:SetClampedToScreen(true)
     
     frame:SetBackdrop({
         bgFile = styles.files.bgFile,
