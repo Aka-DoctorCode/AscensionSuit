@@ -3,7 +3,7 @@
 ## Notes: My own UI/UX library. Also store third party libraries and shared files that my Ascension Add ons use in a single place.
 ## Author: Aka-DoctorCode
 ## Category: Library
-## Version: @project-version@
+## Version: @project_version@
 ## IconTexture: Interface\AddOns\AscensionSuit\Media\AkaDoctorCode.png
 ## X-Curse-Project-ID: 1402263
 ## X-Wago-ID: qKQmnnKx

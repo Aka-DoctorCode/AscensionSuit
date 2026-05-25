@@ -84,6 +84,7 @@ function Context:createInput(args)
     editBox:SetScript("OnEditFocusLost", function(self)
         if styles.colors.surfaceLight then self:SetBackdropColor(unpack(styles.colors.surfaceLight)) end
         if styles.colors.blackDetail then self:SetBackdropBorderColor(unpack(styles.colors.blackDetail)) end
+        if onEnterPressed then onEnterPressed(self:GetText()) end
     end)
 
     editBox:SetScript("OnEnterPressed", function(self)

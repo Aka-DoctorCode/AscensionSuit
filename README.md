@@ -253,7 +253,7 @@ A labled checkbox with integrated tooltip support.
 ---
 
 ### `createSlider`
-Premium slider with an edit box, plus/minus step buttons, and a label.
+Premium slider with an edit box, plus/minus step buttons, a label, and dynamic step precision formatting.
 
 **Parameters**:
 
@@ -276,7 +276,7 @@ Premium slider with an edit box, plus/minus step buttons, and a label.
 ---
 
 ### `createStepper`
-A numeric input with a label, edit box, and +/- buttons. No slider track.
+A numeric input with a label, edit box, +/- buttons, and dynamic step precision formatting. No slider track.
 
 **Parameters**:
 
@@ -353,7 +353,7 @@ Creates a `ScrollFrame` with a customised scrollbar. The returned `content` fram
 ---
 
 ### `createInput`
-An edit box with a label.
+An edit box with a label. Automatically triggers the enter callback when focus is lost (clicking away).
 
 **Parameters**:
 
@@ -542,7 +542,7 @@ All utility functions are accessed via `lib.UX`. They are lightweight helpers fo
 | ------ | ----------- |
 | `showContextMenu(parent, options, config)` | Shows a context menu at the cursor. If `config` is provided, it automatically adds **Lock/Unlock** and **Reset Position** buttons. |
 | `attachTooltip(frame, title, description)` | Shows a premium **custom tooltip frame** (100% opaque, larger fonts) on mouse enter. Wraps existing OnEnter/OnLeave scripts. |
-| `makeMovable(frame)` | Enables dragging with the left mouse button. |
+| `makeMovable(frame, config)` | Enables dragging with the left mouse button, saving/loading coordinates from a persistent config table. |
 | `makeResizable(frame, minWidth, minHeight)` | Adds a resize grip at the bottom‑right corner. |
 | `makeClosableWithEscape(frame)` | Hides the frame when Escape is pressed. |
 | `registerClickOutside(frame, callback)` | Closes the frame when clicking elsewhere. |

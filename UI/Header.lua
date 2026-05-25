@@ -42,7 +42,7 @@ function Context:createHeader(args)
     -- Customize font size and outline
     local fontPath, defaultSize, defaultFlags = header:GetFont()
     local finalSize = args.size or defaultSize
-    local finalOutline = args.outline or "THICKOUTLINE"
+    local finalOutline = args.outline or "OUTLINE"
     header:SetFont(fontPath, finalSize, finalOutline)
 
     if color then

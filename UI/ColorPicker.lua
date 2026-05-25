@@ -31,8 +31,7 @@ function Context:createColorPicker(args)
     local hasAlpha = args.hasAlpha
     local tooltip = args.tooltip
 
-    local basePadding = xOffset or self.styles.dimensions.contentPadding or 16
-    local actualX = basePadding - 4
+    local actualX = (xOffset or self.styles.dimensions.contentPadding or 16) + 4
     local pickerSize = self.styles.dimensions.colorPickerSize or 20
     local pickerSpacing = self.styles.dimensions.colorPickerSpacing or 24
 

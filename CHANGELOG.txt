@@ -1,8 +1,13 @@
-<h1>@project-version@</h1>
+<h1>@project_version@</h1>
 <ul>
-    <li>Under the hood changes to imporve the addon and prepare for future changes.</li>
+    <li>Added dynamic step precision formatting to Steppers and Sliders</li>
+    <li>Added automatic value saving on focus loss for input fields</li>
+    <li>Increased stepper input field width to prevent value text truncation</li>
+    <li>Fixed ColorPicker layout alignment by removing obsolete negative horizontal offset</li>
+    <li>Standardized header text outline to regular OUTLINE style</li>
+    <li>Exposed label object on Slider components for easier customization</li>
+    <li>Centered and auto-stretched Sliders to match parent frame boundaries</li>
+    <li>Reduced vertical spacing between Slider and its label</li>
 </ul>
-<br>
-
 <br>
 <h2>Positive feedback is always appreciated, it helps me to continue working on this project</h2>

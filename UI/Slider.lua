@@ -27,6 +27,12 @@ function Context:createSlider(args)
     local minVal = args.minVal or 0
     local maxVal = args.maxVal or 100
     local step = args.step or 1
+    local precision = 0
+    if step < 1 then
+        precision = math.ceil(-math.log10(step))
+    end
+    local formatStr = "%." .. tostring(precision) .. "f"
+
     local getter = args.getter
     local setter = args.setter
     local tooltip = args.tooltip
@@ -39,8 +45,8 @@ function Context:createSlider(args)
     
     -- Slider Frame
     local slider = CreateFrame("Slider", sliderName, parent, "BackdropTemplate")
-    slider:SetPoint("TOPLEFT", actualX, yOffset - 24)
-    slider:SetWidth(width)
+    slider:SetPoint("TOPLEFT", parent, "TOPLEFT", actualX, yOffset - 24)
+    slider:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -actualX, yOffset - 24)
     slider:SetHeight(8) -- Thin premium track
     slider:SetMinMaxValues(minVal, maxVal)
     slider:SetValueStep(step)
@@ -65,13 +71,10 @@ function Context:createSlider(args)
 
     -- Label
     local label = slider:CreateFontString(nil, "OVERLAY", self.styles.fonts.label)
-    label:SetPoint("BOTTOMLEFT", slider, "TOPLEFT", 0, 8)
+    label:SetPoint("BOTTOMLEFT", slider, "TOPLEFT", 0, 3)
     label:SetText(text or "")
     if self.styles.colors.textLight then label:SetTextColor(unpack(self.styles.colors.textLight)) end
-
-    local val = minVal
-    if getter then val = getter() or minVal end
-    slider:SetValue(val)
+    slider.label = label
 
     -- -------------------------------------------------------------------------------
     -- 3. COMPONENT INTEGRATION (Stepper)
@@ -96,13 +99,29 @@ function Context:createSlider(args)
     stepper:SetPoint("TOPLEFT", slider, "BOTTOMLEFT", 0, -4)
     stepper:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT", 0, -4)
 
+    slider.stepper = stepper
+
+    -- Override SetValue to always sync the editBox text
+    local originalSetValue = slider.SetValue
+    slider.SetValue = function(self, value)
+        originalSetValue(self, value)
+        if self.stepper and self.stepper.editBox then
+            self.stepper.editBox:SetText(string.format(formatStr, value))
+        end
+    end
+
+    -- Initial Value
+    local val = minVal
+    if getter then val = getter() or minVal end
+    slider:SetValue(val)
+
     -- -------------------------------------------------------------------------------
     -- 4. EVENT HANDLERS
     -- -------------------------------------------------------------------------------
     slider:SetScript("OnValueChanged", function(_, value)
         if stepper.editBox then
             -- Sync stepper text with slider value
-            stepper.editBox:SetText(tostring(math.floor(value * 100) / 100))
+            stepper.editBox:SetText(string.format(formatStr, value))
         end
     end)
 

@@ -27,6 +27,12 @@ function Context:createStepper(args)
     local minVal = args.minVal or 0
     local maxVal = args.maxVal or 100
     local step = args.step or 1
+    local precision = 0
+    if step < 1 then
+        precision = math.ceil(-math.log10(step))
+    end
+    local formatStr = "%." .. tostring(precision) .. "f"
+
     local getter = args.getter
     local setter = args.setter
     local tooltip = args.tooltip
@@ -46,12 +52,12 @@ function Context:createStepper(args)
         local numericValue = tonumber(inputValue)
         if numericValue then
             numericValue = math.max(minVal, math.min(maxVal, numericValue))
-            editBox:SetText(tostring(math.floor(numericValue * 100) / 100))
+            editBox:SetText(string.format(formatStr, numericValue))
             if setter then setter(numericValue) end
         else
             -- Revert to current value on invalid input
             if getter then
-                editBox:SetText(tostring(math.floor(getter() * 100) / 100))
+                editBox:SetText(string.format(formatStr, getter()))
             end
         end
     end
@@ -63,7 +69,7 @@ function Context:createStepper(args)
     controlsFrame:SetSize(width, btnSize)
 
     -- Integrated Input Field
-    local inputWidth = 40
+    local inputWidth = 65
     local inputFrame = self:createInput({
         parent = controlsFrame,
         width = inputWidth,
@@ -74,7 +80,7 @@ function Context:createStepper(args)
     local editBox = inputFrame.editBox
     controlsFrame.editBox = editBox
     editBox:SetJustifyH("CENTER")
-    editBox:SetText(tostring(math.floor(val * 100) / 100))
+    editBox:SetText(string.format(formatStr, val))
 
     -- Minus Button
     local btnMinus = self:createStepButton({
