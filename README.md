@@ -22,7 +22,7 @@ Próximamente más información...
 
 ***
 
-```markdown
+
 # Ascension Suit
 
 **Shared UI/UX Library for World of Warcraft Addons**
@@ -83,13 +83,13 @@ It is built on **LibStub** and provides a complete design system, factory method
 
 Retrieve the library and create a UI **Context**. The context holds all styling information (pulled directly from the library's global defaults) and provides methods to build interface elements.
 
-```lua
+lua
 local lib = LibStub:GetLibrary("AscensionSuit-UI")
 if not lib then return end
 
 -- Create a context (automatically inherits global DefaultStyles)
 local ctx = lib:CreateContext()
-```
+
 
 Every UI component is created by calling a method on this context (e.g. `ctx:createHeader(...)`). Most methods return two values: the created frame and the next available vertical offset (`widget, nextY`), allowing you to chain elements manually.
 
@@ -454,19 +454,19 @@ A pre‑created instance is available directly on the context.
 
 ### Obtaining a Layout Model
 
-```lua
+lua
 -- Use the context’s built-in model (recommended)
 local layout = ctx.layoutModel
 
 -- Or create a new one manually
 local layout = lib.LayoutModel:new(ctx, startY)  -- startY is optional, defaults to -15
-```
+
 
 Point it to a parent frame and set the starting Y offset:
 
-```lua
+lua
 layout:reset(myFrame, -20)  -- first element will be placed at y = -20 from the top
-```
+
 
 ### Methods
 
@@ -492,7 +492,7 @@ The first argument (`elementID`) shown in some earlier documentation is **not re
 
 The `LayoutModel` now supports parallel columns. Elements added inside a column will automatically respect the column's width and offset.
 
-```lua
+lua
 layout:beginColumn(10, 200) -- Offset 10, Width 200
     layout:header("Column 1")
     layout:checkbox("Option 1", nil, getter, setter)
@@ -506,18 +506,18 @@ layout:endColumn()
 -- Finalize aligns the cursor to the bottom of the deepest column
 -- and optionally resizes the content container.
 layout:columnsFinalize(panel.content, 20)
-```
+
 
 ### Sections
 
 Group related controls inside a bordered box. Elements added inside a section respect the section's width.
 
-```lua
+lua
 layout:beginSection(20, 360)    -- left offset and width
     layout:checkbox("Enable", "Tooltip", getter, setter)
     layout:slider("Scale", "Tooltip", 0.5, 2, 0.1, getter, setter)
 layout:endSection()
-```
+
 
 After `endSection()`, the `y` cursor moves below the section with additional spacing.
 
@@ -525,10 +525,10 @@ After `endSection()`, the `y` cursor moves below the section with additional spa
 
 If you prefer to build the UI without the Layout Model, simply use the context factory methods directly and chain the returned `nextY`:
 
-```lua
+lua
 local btn1, nextY = ctx:createButton({ parent = f, text = "One", yOffset = -20 })
 local btn2, nextY = ctx:createButton({ parent = f, text = "Two", yOffset = nextY })
-```
+
 
 ---
 
@@ -559,19 +559,19 @@ If building custom context menus, you can use these helpers to add standard butt
 
 The library provides helpers for standardising position storage and themes.
 
-```lua
+lua
 -- Initialize position storage for an addon module
 local config = lib:initPositionStorage("MyAddon", { point = "CENTER", x = 0, y = 0 })
 
 -- Update position table from a frame manually
 lib:updatePositionFromFrame(myFrame, config)
-```
+
 
 ---
 
 Register a panel in the standard Interface → AddOns menu. The panel will display a message guiding users to your custom UI.
 
-```lua
+lua
 lib.Integration:registerBlizzardPanel(
     "MyAddon",               -- Unique addon key
     "My Addon Settings",     -- Display name
@@ -579,7 +579,7 @@ lib.Integration:registerBlizzardPanel(
         MyAddonConfigFrame:Show()
     end
 )
-```
+
 
 ---
 
@@ -587,7 +587,7 @@ lib.Integration:registerBlizzardPanel(
 
 A complete, working example that creates a movable, closable, resizable configuration window with two tabs.
 
-```lua
+lua
 local lib = LibStub:GetLibrary("AscensionSuit-UI")
 local ctx = lib:CreateContext()
 
@@ -636,7 +636,7 @@ local f = ctx:createMainFrame({
 -- 3. Show command
 SLASH_MYADDON1 = "/myaddon"
 SlashCmdList["MYADDON"] = function() f:Show() end
-```
+
 
 ---
 
@@ -659,4 +659,3 @@ SlashCmdList["MYADDON"] = function() f:Show() end
 ---
 
 *Happy addon building!*
-```
