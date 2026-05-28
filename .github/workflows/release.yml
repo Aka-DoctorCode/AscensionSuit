@@ -33,13 +33,22 @@ jobs:
           
           git fetch --tags
 
-          LATEST_TAG=$(git describe --tags --abbrev=0 --match "V[0-9]*" 2>/dev/null || echo "V0")
-          VERSION_NUM=${LATEST_TAG#V}
-          NEXT_NUM=$((VERSION_NUM + 1))
-          NEW_TAG="V$NEXT_NUM"
-          
-          git tag $NEW_TAG
-          git push origin $NEW_TAG
+          latestTag=$(git tag -l 'V[0-9]*' | sort -V | tail -n1)
+          if [[ -z $latestTag ]]; then
+            latestTag=V0
+          fi
+
+          versionNum=${latestTag#V}
+          nextNum=$((versionNum + 1))
+          newTag="V$nextNum"
+
+          # Check if tag already exists on remote
+          if git ls-remote --tags origin | grep -qw "refs/tags/$newTag"; then
+            echo "$newTag already exists. Skipping tag creation."
+          else
+            git tag "$newTag"
+            git push origin "$newTag"
+          fi
 
           echo "Update for changes to ${{ github.event.client_payload.trigger || 'TriggerAddon' }} ${{ github.event.client_payload.version || 'latest' }}" > CHANGELOG.txt
 
