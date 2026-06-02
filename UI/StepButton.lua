@@ -19,7 +19,6 @@ if not Context then return end
 -- 2. STEP BUTTON FACTORY
 -- -------------------------------------------------------------------------------
 --- Creates a standardized button for incrementing or decrementing values (+/-).
---- @param args table: Configuration (parent, symbol, size, onClick, styles)
 function Context:createStepButton(args)
     if not args or not args.parent or not args.symbol or not args.size or not args.onClick then 
         return nil 

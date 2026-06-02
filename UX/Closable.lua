@@ -20,7 +20,6 @@ lib.UX = UX
 -- -------------------------------------------------------------------------------
 --- Configures a frame to be hidable when the user presses the Escape key.
 --- Supports both UISpecialFrames registration and manual OnKeyDown capture.
---- @param frame frame: The target frame to make closable.
 function UX:makeClosableWithEscape(frame)
     if not frame then return end
     
