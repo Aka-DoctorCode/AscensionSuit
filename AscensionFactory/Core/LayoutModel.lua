@@ -7,347 +7,356 @@
 
 -------------------------------------------------------------------------------
 -- 1. INITIALIZATION
+-- Objective: Initialize the LayoutModel namespace and link it to the global AscensionFactory library.
+-- Variables:
+-- MAJOR: The namespace identifier for the addon library.
 -------------------------------------------------------------------------------
 local MAJOR = "AscensionFactory"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
 
+-- Acts as a class blueprint to store our LayoutModel functions.
 lib.LayoutModel = lib.LayoutModel or {}
+-- Setup Lua OOP inheritance. __index to itself means any new table created from this blueprint will automatically have access to all its functions.
 lib.LayoutModel.__index = lib.LayoutModel
 
 -------------------------------------------------------------------------------
--- 2. CONSTRUCTOR & RESET
+-- 2. CONSTRUCTOR & CORE ANCHORING
+-- Objective: Initializes a new LayoutModel instance to handle UI element positioning automatically.
+-- Variables:
+-- uiContext: The UI framework context containing styles and element factories.
+-- parent: The main WoW UI frame that all layout elements will be attached to.
 -------------------------------------------------------------------------------
---- Initializes a new LayoutModel instance.
-function lib.LayoutModel:new(uiContext, parent, startY)
-    local obj = {
-        uiContext = uiContext or self.uiContext,
+
+function lib.LayoutModel:new(uiContext, parent)
+    local layoutInstance = {
+        uiContext = uiContext or self.uiContext, 
         parent = parent,
-        y = startY or -15,
-        currentSection = nil,
-        sectionStartY = 0,
-        sectionStartX = 0,
-        columnStartY = nil,
-        columnMaxY = nil,
-        currentXOffset = nil,
-        currentWidth = nil
+        -- Tracks the active container frame
+        currentParent = parent,
+        -- The reference element for vertical stacking
+        lastAddedElement = nil,
+        -- Horizontal indent for columns
+        columnCurrentX = 0,
+        -- Forced width state for elements
+        currentWidth = nil           
     }
-    return setmetatable(obj, lib.LayoutModel)
+    return setmetatable(layoutInstance, lib.LayoutModel)
 end
 
---- Resets the layout state to a new parent and starting position.
-function lib.LayoutModel:reset(parent, startY)
+--- Resets the layout engine state. Used to recycle a LayoutModel instead of creating a new one (saves memory).
+--- 1: parent (The new main WoW UI frame to anchor elements to)
+function lib.LayoutModel:reset(parent)
     self.parent = parent
-    self.y = startY or -15
-    self.currentSection = nil
-    self.sectionStartY = 0
-    self.sectionStartX = 0
-    self.columnStartY = nil
-    self.columnMaxY = nil
-    self.currentXOffset = nil
+    self.currentParent = parent
+    self.lastAddedElement = nil
+    self.columnCurrentX = 0
     self.currentWidth = nil
     return self
 end
 
 -------------------------------------------------------------------------------
--- 3. COORDINATE HELPERS
+-- 3. ANCHOR ENGINE
+-- Objective: Dynamically anchor elements to the previously created widget.
+-- Variables:
+-- verticalGap (number): Optional vertical spacing between elements.
+-- effectiveX (number): The calculated horizontal shift.
 -------------------------------------------------------------------------------
---- Returns yOffset relative to section when inside one, else content-relative y.
-function lib.LayoutModel:effectiveY()
-    if self.currentSection then
-        return self.y - self.sectionStartY
-    end
-    return self.y
-end
 
---- Returns xOffset relative to section when inside one, else content-relative x.
-function lib.LayoutModel:effectiveX(xOffset)
-    if self.currentSection then
-        return xOffset - self.sectionStartX
-    end
-    return xOffset
-end
-
---- Converts section-relative newY back to content-relative and updates internal cursor.
-function lib.LayoutModel:applyNewY(newY)
-    if self.currentSection then
-        self.y = newY + self.sectionStartY
+--- Anchors a newly created element vertically below the previous one.
+--- 1: element (The UI frame/widget being placed)
+--- 2: xOffset (Optional horizontal shift)
+--- 3: verticalGap (Optional vertical spacing, defaults to 10)
+function lib.LayoutModel:anchorElement(element, xOffset, verticalGap)
+    -- API Check: Prevent nil errors if factory failed
+    if type(element) ~= "table" or not element.SetPoint then return end
+    
+    verticalGap = verticalGap or 10
+    local effectiveX = xOffset or self.columnCurrentX or 0
+    
+    -- Clear any factory-default anchors
+    element:ClearAllPoints()
+    
+    if not self.lastAddedElement then
+        -- First element in the current container
+        element:SetPoint("TOPLEFT", self.currentParent, "TOPLEFT", effectiveX, -verticalGap)
     else
-        self.y = newY
+        -- Standard vertical stacking below the previous element
+        element:SetPoint("TOPLEFT", self.lastAddedElement, "BOTTOMLEFT", effectiveX, -verticalGap)
     end
+    
+    -- Update tracker for the next element
+    self.lastAddedElement = element
 end
 
 -------------------------------------------------------------------------------
 -- 4. COMPONENT WRAPPERS
+-- Objective: Instantiate elements and process them through the Anchor Engine.
+-- Variables:
+-- elementID (string): Unique identifier for the UI element.
+-- text (string): Text string displayed by the element.
 -------------------------------------------------------------------------------
+
+--- Creates a header element to categorize sections.
+--- 1: elementID (Unique identifier string)
+--- 2: text (The string to display as the header)
 function lib.LayoutModel:header(elementID, text)
-    local targetParent = self.currentSection or self.parent
     if not self.uiContext.createHeader then return nil end
-    local h, newY = self.uiContext:createHeader({
-        parent = targetParent,
-        text = text,
-        yOffset = self:effectiveY(),
-        xOffset = self.currentXOffset and self:effectiveX(self.currentXOffset) or nil
+    
+    local headerElement = self.uiContext:createHeader({
+        parent = self.currentParent,
+        name = elementID,
+        text = text
     })
-    self:applyNewY(newY)
-    return h
+    
+    -- 15px gap for headers to create visual breathing room
+    self:anchorElement(headerElement, 0, 15) 
+    return headerElement
 end
 
-function lib.LayoutModel:label(elementID, text, xOffset, color)
-    local targetParent = self.currentSection or self.parent
-    if not self.uiContext.createLabel then return nil end
-    local l, newY = self.uiContext:createLabel({
-        parent = targetParent,
-        anchorFrame = self.parent,
-        text = text,
-        yOffset = self.y,
-        xOffset = xOffset or self.currentXOffset,
-        color = color
+--- Creates a standard text label.
+--- 1: elementID (Unique identifier string)
+--- 2: text (The text to display)
+--- 3: xOffset (Optional manual horizontal shift)
+function lib.LayoutModel:label(elementID, text, xOffset)
+    if not self.uiContext.createLabel then return nil end    
+    
+    local labelElement = self.uiContext:createLabel({
+        parent = self.currentParent,
+        name = elementID,
+        text = text
     })
-    self.y = newY
-    return l
+    
+    self:anchorElement(labelElement, xOffset, 10)
+    return labelElement
 end
 
-function lib.LayoutModel:checkbox(elementID, text, tooltip, getter, setter, xOffset)
-    local targetParent = self.currentSection or self.parent
-    local rawX = xOffset or self.currentXOffset
-    if not self.uiContext.createCheckbox then return nil end
-    local cb, newY = self.uiContext:createCheckbox({
-        parent = targetParent,
+--- Creates a multi-line paragraph that wraps text.
+--- 1: elementID (Unique identifier string)
+--- 2: text (The long string to display)
+--- 3: rightOffset (Distance from the right edge to force wrapping)
+--- 4: xOffset (Optional manual horizontal shift)
+function lib.LayoutModel:paragraph(elementID, text, rightOffset, xOffset)
+    if not self.uiContext.createParagraph then return nil end
+    
+    local paragraphElement = self.uiContext:createParagraph({
+        parent = self.currentParent,
+        name = elementID,
         text = text,
-        tooltip = tooltip,
-        getter = getter,
-        setter = setter,
-        yOffset = self:effectiveY(),
-        xOffset = rawX and self:effectiveX(rawX) or nil
+        rightOffset = rightOffset
     })
-    self:applyNewY(newY)
-    return cb
+    
+    self:anchorElement(paragraphElement, xOffset, 10)
+    return paragraphElement
 end
 
-function lib.LayoutModel:slider(elementID, text, tooltip, minVal, maxVal, step, getter, setter, width, xOffset)
-    if tooltip ~= nil and type(tooltip) ~= "string" then
-        xOffset, width, setter, getter, step, maxVal, minVal, tooltip = width, setter, getter, step, maxVal, minVal, tooltip, nil
-    end
-    local targetParent = self.currentSection or self.parent
-    local rawX = xOffset or self.currentXOffset
-    if not self.uiContext.createSlider then return nil end
-    local s, newY = self.uiContext:createSlider({
-        parent = targetParent,
-        text = text,
-        tooltip = tooltip,
-        minVal = minVal,
-        maxVal = maxVal,
-        step = step,
-        getter = getter,
-        setter = setter,
-        width = width or self.currentWidth,
-        yOffset = self:effectiveY(),
-        xOffset = rawX and self:effectiveX(rawX) or nil
-    })
-    self:applyNewY(newY)
-    return s
-end
-
-function lib.LayoutModel:stepper(elementID, text, tooltip, minVal, maxVal, step, getter, setter, width, xOffset)
-    if tooltip ~= nil and type(tooltip) ~= "string" then
-        xOffset, width, setter, getter, step, maxVal, minVal, tooltip = width, setter, getter, step, maxVal, minVal, tooltip, nil
-    end
-    local targetParent = self.currentSection or self.parent
-    local rawX = xOffset or self.currentXOffset
-    if not self.uiContext.createStepper then return nil end
-    local s, newY = self.uiContext:createStepper({
-        parent = targetParent,
-        text = text,
-        tooltip = tooltip,
-        minVal = minVal,
-        maxVal = maxVal,
-        step = step,
-        getter = getter,
-        setter = setter,
-        width = width or self.currentWidth,
-        yOffset = self:effectiveY(),
-        xOffset = rawX and self:effectiveX(rawX) or nil
-    })
-    self:applyNewY(newY)
-    return s
-end
-
-function lib.LayoutModel:colorPicker(elementID, text, tooltip, getter, setter, xOffset, hasAlpha)
-    if tooltip ~= nil and type(tooltip) ~= "string" then
-        hasAlpha, xOffset, setter, getter, tooltip = xOffset, getter, setter, tooltip, nil
-    end
-    local targetParent = self.currentSection or self.parent
-    local rawX = xOffset or self.currentXOffset
-    if not self.uiContext.createColorPicker then return nil end
-    local cp, newY = self.uiContext:createColorPicker({
-        parent = targetParent,
-        text = text,
-        tooltip = tooltip,
-        getter = getter,
-        setter = setter,
-        yOffset = self:effectiveY(),
-        xOffset = rawX and self:effectiveX(rawX) or nil,
-        hasAlpha = hasAlpha
-    })
-    self:applyNewY(newY)
-    return cp
-end
-
-function lib.LayoutModel:dropdown(elementID, text, tooltip, options, getter, setter, width, xOffset)
-    if tooltip ~= nil and type(tooltip) ~= "string" then
-        xOffset, width, setter, getter, options, tooltip = width, setter, getter, options, tooltip, nil
-    end
-    local targetParent = self.currentSection or self.parent
-    local rawX = xOffset or self.currentXOffset
-    if not self.uiContext.createDropdown then return nil end
-    local dd, newY = self.uiContext:createDropdown({
-        parent = targetParent,
-        text = text,
-        tooltip = tooltip,
-        options = options,
-        getter = getter,
-        setter = setter,
-        width = width or self.currentWidth,
-        yOffset = self:effectiveY(),
-        xOffset = rawX and self:effectiveX(rawX) or nil
-    })
-    self:applyNewY(newY)
-    return dd
-end
-
-function lib.LayoutModel:input(elementID, text, tooltip, width, xOffset, onEnterPressed)
-    if type(tooltip) ~= "string" then
-        onEnterPressed, xOffset, width, tooltip = xOffset, width, tooltip, nil
-    end
-    local targetParent = self.currentSection or self.parent
-    local rawX = xOffset or self.currentXOffset
-    if not self.uiContext.createInput then return nil end
-    local inp, newY = self.uiContext:createInput({
-        parent = targetParent,
-        text = text,
-        tooltip = tooltip,
-        width = width or self.currentWidth,
-        xOffset = rawX and self:effectiveX(rawX) or nil,
-        yOffset = self:effectiveY(),
-        onEnterPressed = onEnterPressed
-    })
-    self:applyNewY(newY)
-    return inp
-end
-
+--- Creates a clickable button.
+--- 1: elementID (Unique identifier string)
+--- 2: text (Label text shown on the button)
+--- 3: tooltip (Hover information text)
+--- 4: width (Button width in pixels)
+--- 5: height (Button height in pixels)
+--- 6: xOffset (Layout horizontal override)
+--- 7: onClick (Callback function executed when clicked)
 function lib.LayoutModel:button(elementID, text, tooltip, width, height, xOffset, onClick)
     if tooltip ~= nil and type(tooltip) ~= "string" then
         onClick, xOffset, height, width, tooltip = xOffset, height, width, tooltip, nil
     end
-    local targetParent = self.currentSection or self.parent
-    local rawX = xOffset or self.currentXOffset
+    
     if not self.uiContext.createButton then return nil end
-    local btn, newY = self.uiContext:createButton({
-        parent = targetParent,
+    
+    local buttonElement = self.uiContext:createButton({
+        parent = self.currentParent,
+        name = elementID,
         text = text,
         tooltip = tooltip,
         width = width or self.currentWidth,
         height = height,
-        xOffset = rawX and self:effectiveX(rawX) or nil,
-        yOffset = self:effectiveY(),
         onClick = onClick
     })
-    self:applyNewY(newY)
-    return btn
+    
+    self:anchorElement(buttonElement, xOffset, 10)
+    return buttonElement
 end
 
--------------------------------------------------------------------------------
-
--- 5. SECTION MANAGEMENT
--------------------------------------------------------------------------------
---- Begins a new layout section with its own backdrop and relative positioning.
-function lib.LayoutModel:beginSection(xOffset, width)
-    local section = CreateFrame("Frame", nil, self.parent, "BackdropTemplate")
-    local actualX = xOffset or self.currentXOffset or 8
-    local actualWidth = width or self.currentWidth
-    self.sectionStartY = self.y + 4
-    self.sectionStartX = actualX
-    section:SetPoint("TOPLEFT", self.parent, "TOPLEFT", actualX, self.sectionStartY)
-
-    if actualWidth then
-        section:SetWidth(actualWidth)
-    else
-        section:SetPoint("RIGHT", self.parent, "RIGHT", -8, 0)
-    end
-
-    section:SetBackdrop({
-        bgFile = self.uiContext.styles.files.bgFile,
-        edgeFile = self.uiContext.styles.files.edgeFile,
-        edgeSize = 1,
-        insets = { left = 1, right = 1, top = 1, bottom = 1 }
+--- Creates a toggle switch.
+--- 1: elementID (Unique string ID)
+--- 2: getter (Function returning current state)
+--- 3: setter (Function called with the new state when toggled)
+--- 4: width (Layout width override)
+--- 5: height (Layout height override)
+--- 6: xOffset (Layout horizontal override)
+--- 7: onClick (Optional extra callback to execute on click)
+function lib.LayoutModel:toggle(elementID, getter, setter, width, height, xOffset, onClick)
+    if not self.uiContext.createToggle then return nil end
+    
+    local toggleElement = self.uiContext:createToggle({
+        parent = self.currentParent,
+        name = elementID,
+        getter = getter,
+        setter = setter,
+        width = width or 50,
+        height = height or 24,
+        onClick = onClick
     })
-
-    if self.uiContext.styles.colors.surfaceDark then section:SetBackdropColor(unpack(self.uiContext.styles.colors.surfaceDark)) end
-    if self.uiContext.styles.colors.surfaceLight then section:SetBackdropBorderColor(unpack(self.uiContext.styles.colors.surfaceLight)) end
-    self.currentSection = section
-    self.y = self.y - 4
+    
+    self:anchorElement(toggleElement, xOffset, 10)
+    return toggleElement
 end
 
---- Finalizes the current section, calculating its total height based on elements added.
-function lib.LayoutModel:endSection()
-    if self.currentSection then
-        self.y = self.y + 8
-        local totalHeight = self.sectionStartY - self.y
-        self.currentSection:SetHeight(totalHeight)
-        self.currentSection = nil
-        self.sectionStartY = 0
-        self.sectionStartX = 0
-        self.y = self.y - 16
+-------------------------------------------------------------------------------
+-- 5. SECTION MANAGEMENT
+-- Objective: Group elements dynamically using BOTTOM-anchoring for auto-resizing.
+-- Variables:
+-- xOffset (number): Optional indentation for the section box.
+-- width (number): Optional explicit width for the section box.
+-- section (table): The dynamically created Frame serving as the group container.
+-------------------------------------------------------------------------------
+
+--- Begins a new layout section with its own backdrop and relative positioning.
+--- 1: xOffset (The horizontal coordinate indent for the section box)
+--- 2: width (The total width of the section box)
+function lib.LayoutModel:beginSection(xOffset, width)
+    local section = self.uiContext:AcquireElement("Frame", self.currentParent, {})
+    local actualXOffset = xOffset or 8
+    
+    -- Anchor the section box itself to the flow
+    self:anchorElement(section, actualXOffset, 10)
+    
+    if width then
+        section:SetWidth(width)
+    else
+        section:SetPoint("RIGHT", self.currentParent, "RIGHT", -8, 0)
     end
+
+    -- Setup Background and Border
+    if not section.border then
+        local border = section:CreateTexture(nil, "BACKGROUND", nil, -2)
+        border:SetAllPoints(section)
+        section.border = border
+    end
+    
+    if self.uiContext.styles.colors.surfaceLight then 
+        section.border:SetColorTexture(unpack(self.uiContext.styles.colors.surfaceLight)) 
+    end
+
+    if not section.background then
+        local background = section:CreateTexture(nil, "BACKGROUND", nil, -1)
+        background:SetPoint("TOPLEFT", section, "TOPLEFT", 1, -1)
+        background:SetPoint("BOTTOMRIGHT", section, "BOTTOMRIGHT", -1, 1)
+        section.background = background
+    end
+    
+    if self.uiContext.styles.colors.surfaceDark then 
+        section.background:SetColorTexture(unpack(self.uiContext.styles.colors.surfaceDark)) 
+    end
+    
+    -- Context Shift: Next elements will be anchored INSIDE this section
+    self.previousParent = self.currentParent
+    self.currentParent = section
+    self.lastAddedElement = nil -- Reset cursor for the inside of the section
+end
+
+--- Finalizes the current section, automatically stretching its height to wrap contents.
+function lib.LayoutModel:endSection()
+    local section = self.currentParent
+    if not section then return end
+
+    -- Dynamic Height: Stretch the section's bottom to wrap around the last added element
+    if self.lastAddedElement then
+        section:SetPoint("BOTTOM", self.lastAddedElement, "BOTTOM", 0, -10)
+    else
+        section:SetHeight(20) -- Fallback for an empty section
+    end
+
+    -- Context Pop: Return to the parent layout flow
+    self.currentParent = self.previousParent
+    self.lastAddedElement = section
 end
 
 -------------------------------------------------------------------------------
 -- 6. COLUMN MANAGEMENT
+-- Objective: Use invisible containers to auto-calculate the tallest column.
+-- Variables:
+-- xOffset (number): The horizontal coordinate indent for the current column.
+-- width (number): The total width allocated for the current column.
+-- contentFrame (table): The master container frame whose height is updated.
+-- bottomPadding (number): Extra space to add at the bottom of the content frame.
 -------------------------------------------------------------------------------
 
 --- Begins a columnar layout, allowing side-by-side elements.
+--- 1: xOffset (The horizontal coordinate indent for the column)
+--- 2: width (The width of the column)
 function lib.LayoutModel:beginColumn(xOffset, width)
-    if not self.columnStartY then
-        self.columnStartY = self.y
-        self.columnMaxY = self.y
+    -- If this is the start of a column row, create a transparent container
+    if not self.columnContainer then
+        self.columnContainer = self.uiContext:AcquireElement("Frame", self.currentParent, {})
+        self:anchorElement(self.columnContainer, 0, 0)
+        self.columnContainer:SetPoint("RIGHT", self.currentParent, "RIGHT", 0, 0)
+        
+        self.previousParentCol = self.currentParent
+        self.currentParent = self.columnContainer
     end
-    self.y = self.columnStartY
-    self.currentXOffset = xOffset
+    
+    -- Reset vertical anchor for the new column
+    self.lastAddedElement = nil
+    self.columnCurrentX = xOffset or 0
     self.currentWidth = width
 end
 
---- Marks the end of a column and updates the maximum height reached.
+--- Marks the end of a column and updates the tallest column tracker.
 function lib.LayoutModel:endColumn()
-    if self.y < self.columnMaxY then
-        self.columnMaxY = self.y
+    -- Track the absolute lowest point reached by any column in this row
+    if self.lastAddedElement then
+        if not self.tallestColumnBottom or self.lastAddedElement:GetBottom() < self.tallestColumnBottom:GetBottom() then
+            self.tallestColumnBottom = self.lastAddedElement
+        end
     end
 end
 
 --- Finalizes the column layout and updates the parent container's height.
+--- 1: contentFrame (The container frame to resize)
+--- 2: bottomPadding (Extra padding at the bottom)
 function lib.LayoutModel:columnsFinalize(contentFrame, bottomPadding)
-    self.y = self.columnMaxY
-    self.columnStartY = nil
-    self.columnMaxY = nil
-    self.currentXOffset = nil
-    self.currentWidth = nil
-
-    if contentFrame then
-        local finalHeight = math.abs(self.y) + (bottomPadding or 20)
-        contentFrame:SetHeight(finalHeight)
+    if self.columnContainer then
+        -- Snap the container's bottom to the tallest column automatically
+        if self.tallestColumnBottom then
+            self.columnContainer:SetPoint("BOTTOM", self.tallestColumnBottom, "BOTTOM", 0, -(bottomPadding or 0))
+        else
+            self.columnContainer:SetHeight(10)
+        end
+        
+        -- Restore original context
+        self.currentParent = self.previousParentCol
+        self.lastAddedElement = self.columnContainer
+        
+        -- State cleanup
+        self.columnContainer = nil
+        self.tallestColumnBottom = nil
+        self.columnCurrentX = 0
+        self.currentWidth = nil
+    end
+    
+    -- Optionally finalize the master content frame if provided
+    if contentFrame and self.lastAddedElement then
+        contentFrame:SetPoint("BOTTOM", self.lastAddedElement, "BOTTOM", 0, -(bottomPadding or 20))
     end
 end
 
 -------------------------------------------------------------------------------
 -- 7. CONTEXT EXTENSION
+-- Objective: Attach the LayoutModel class to the UI Context factory, so developers can create a LayoutModel directly from the context.
+-- Variables:
+-- parent (table): The main frame to attach the layout model to.
 -------------------------------------------------------------------------------
 
 local Context = lib.Context
 if Context then
     --- Creates a specialized layout model within the context.
-    function Context:createLayoutModel(parent, startY)
+    --- 1: parent (The WoW UI frame to anchor layout to)
+    function Context:createLayoutModel(parent)
         if lib.LayoutModel then
-            return lib.LayoutModel:new(self, parent, startY)
+            return lib.LayoutModel:new(self, parent)
         end
     end
 end
