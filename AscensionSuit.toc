@@ -1,4 +1,4 @@
-## Interface: 120005
+## Interface: 120007
 ## Title: Ascension Suit
 ## Notes: My own UI/UX library. Also store third party libraries and shared files that my Ascension Add ons use in a single place.
 ## Author: Aka-DoctorCode
