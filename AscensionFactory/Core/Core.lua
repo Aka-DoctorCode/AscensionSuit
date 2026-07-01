@@ -31,8 +31,8 @@ if not lib.Context then lib.Context = Context end
 -- Setup Lua OOP inheritance. __index to itself means any new table created from this blueprint will automatically have access to all its functions.
 Context.__index = Context
 
---- Initializes a new Context instance for elements of the addon.
---- @return table uiContext (The new context instance containing styles and a layout model)
+--- Initializes a new Context instance for elements of the addon. Containing styles and a layout model
+--- @return table uiContext
 function lib:CreateContext()
     -- Create a new table that inherits from the Context blueprint via setmetatable.
     local uiContext = setmetatable({

@@ -1,9 +1,16 @@
--- Project: AscensionSuit
+-------------------------------------------------------------------------------
+-- Project: AscensionFactory
 -- Author: Aka-DoctorCode
--- File: FrameworkPools.lua
+-- File: FrameworkPool.lua
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
+-------------------------------------------------------------------------------
+-- 1. INITIALIZATION
+-- Objective: Initialize the FrameworkPool and link it to the global AscensionFactory library.
+-- Variables:
+-- MAJOR: The namespace identifier for the addon library.
+-------------------------------------------------------------------------------
 local MAJOR = "AscensionFactory"
 local lib = LibStub:GetLibrary(MAJOR)
 if not lib then return end
@@ -12,10 +19,14 @@ local Context = lib.Context
 if not Context then return end
 
 -------------------------------------------------------------------------------
--- 1. SPECIFIC ELEMENT RESETTERS
+-- 2. SPECIFIC ELEMENT RESETTERS
+-- Objective: Defines cleanup functions for different UI elements before returning them to their respective pools. This prevents memory leaks and visual bugs.
+-- Variables:
+-- pool: The pool object managing the element.
+-- button, statusBar, frame, texture, fontString: The UI element being reset.
 -------------------------------------------------------------------------------
 
---- Cleans up a standard button before returning it to the pool.
+-- Cleans up a standard button before returning it to the pool.
 local function ResetButton(pool, button)
     button:Hide()
     button:ClearAllPoints()
@@ -37,7 +48,7 @@ local function ResetButton(pool, button)
     button.onClickCallback = nil
 end
 
---- Cleans up a standard status bar before returning it to the pool.
+-- Cleans up a standard status bar before returning it to the pool.
 local function ResetStatusBar(pool, statusBar)
     statusBar:Hide()
     statusBar:ClearAllPoints()
@@ -47,16 +58,67 @@ local function ResetStatusBar(pool, statusBar)
     statusBar:SetScript("OnValueChanged", nil)
 end
 
---- Cleans up a generic panel frame before returning it to the pool.
+-- Cleans up a generic panel frame before returning it to the pool.
 local function ResetFrame(pool, frame)
     frame:Hide()
     frame:ClearAllPoints()
     frame:SetScript("OnUpdate", nil)
     frame:SetScript("OnEvent", nil)
     frame:UnregisterAllEvents()
+    frame.onUpdateCallback = nil
+    frame.onEventCallback = nil
 end
 
---- Cleans up a pooled texture layer.
+-- Cleans up a CheckButton.
+local function ResetCheckButton(pool, button)
+    button:Hide()
+    button:ClearAllPoints()
+    button:SetChecked(false)
+    button:SetScript("OnClick", nil)
+    button:SetScript("OnEnter", nil)
+    button:SetScript("OnLeave", nil)
+    button.onClickCallback = nil
+end
+
+-- Cleans up an EditBox.
+local function ResetEditBox(pool, editBox)
+    editBox:Hide()
+    editBox:ClearAllPoints()
+    editBox:SetText("")
+    editBox:ClearFocus()
+    editBox:SetScript("OnTextChanged", nil)
+    editBox:SetScript("OnEnterPressed", nil)
+    editBox:SetScript("OnEscapePressed", nil)
+    editBox.onTextChangedCallback = nil
+    editBox.onEnterPressedCallback = nil
+    editBox.onEscapePressedCallback = nil
+end
+
+-- Cleans up a ScrollFrame.
+local function ResetScrollFrame(pool, scrollFrame)
+    scrollFrame:Hide()
+    scrollFrame:ClearAllPoints()
+    scrollFrame:SetScrollChild(nil)
+end
+
+-- Cleans up a Slider.
+local function ResetSlider(pool, slider)
+    slider:Hide()
+    slider:ClearAllPoints()
+    slider:SetMinMaxValues(0, 1)
+    slider:SetValue(0)
+    slider:SetScript("OnValueChanged", nil)
+    slider.onValueChangedCallback = nil
+end
+
+-- Cleans up a Model.
+local function ResetModel(pool, model)
+    model:Hide()
+    model:ClearAllPoints()
+    model:ClearModel()
+end
+
+-- Cleans up a pooled texture layer.
 local function ResetTexture(pool, texture)
     texture:Hide()
     texture:ClearAllPoints()
@@ -66,7 +128,7 @@ local function ResetTexture(pool, texture)
 end
 
 
---- Cleans up a pooled FontString layer.
+-- Cleans up a pooled FontString layer.
 local function ResetFontString(pool, fontString)
     fontString:Hide()
     fontString:ClearAllPoints()
@@ -77,63 +139,39 @@ end
 
 -------------------------------------------------------------------------------
 -- 2. REGISTRY INITIALIZATION
+-- Objective: Lazy-initializes the multi-pool system registry within the framework context to manage UI elements.
+-- Variables:
+-- parentFrame: The default parent frame for all pooled elements.
 -------------------------------------------------------------------------------
 
---- Lazy-initializes the multi-pool system registry within the framework context.
+-- Lazy-initializes the multi-pool system registry within the framework context.
 function Context:InitializeFrameworkPools(parentFrame)
     if self.pools then return end
     
     self.pools = {
-        -- CreateFramePool args:
-        -- 1: "Button" (frame type)
-        -- 2: parentFrame (default parent frame)
-        -- 3: nil (template, none)
-        -- 4: ResetButton (reset function called on release)
         Button = CreateFramePool("Button", parentFrame, nil, ResetButton),
-        
-        -- CreateFramePool args:
-        -- 1: "StatusBar" (frame type)
-        -- 2: parentFrame (parent)
-        -- 3: nil (template)
-        -- 4: ResetStatusBar (reset function)
         StatusBar = CreateFramePool("StatusBar", parentFrame, nil, ResetStatusBar),
-        
-        -- CreateFramePool args:
-        -- 1: "Frame" (frame type)
-        -- 2: parentFrame (parent)
-        -- 3: nil (template)
-        -- 4: ResetFrame (reset function)
         Frame = CreateFramePool("Frame", parentFrame, nil, ResetFrame),
-        
-        -- Graphic Region Pools (Render layers attached to frames, not independent widgets)
-        
-        -- CreateTexturePool args:
-        -- 1: parentFrame (parent)
-        -- 2: "BACKGROUND" (draw layer)
-        -- 3: 0 (sub-layer priority)
-        -- 4: nil (texture template)
-        -- 5: ResetTexture (reset function)
+        CheckButton = CreateFramePool("CheckButton", parentFrame, nil, ResetCheckButton),
+        EditBox = CreateFramePool("EditBox", parentFrame, nil, ResetEditBox),
+        ScrollFrame = CreateFramePool("ScrollFrame", parentFrame, nil, ResetScrollFrame),
+        Slider = CreateFramePool("Slider", parentFrame, nil, ResetSlider),
+        Model = CreateFramePool("Model", parentFrame, nil, ResetModel),
         Texture = CreateTexturePool(parentFrame, "BACKGROUND", 0, nil, ResetTexture),
-        
-        -- CreateFontStringPool args:
-        -- 1: parentFrame (parent)
-        -- 2: "ARTWORK" (draw layer)
-        -- 3: 0 (sub-layer priority)
-        -- 4: "GameFontNormal" (font template)
-        -- 5: ResetFontString (reset function)
         FontString = CreateFontStringPool(parentFrame, "ARTWORK", 0, "GameFontNormal", ResetFontString)
     }
 end
 
 -------------------------------------------------------------------------------
 -- 3. UNIFIED ACQUISITION GATEWAY
+-- Objective: Dynamically acquires a recycled or brand-new UI element of the specified type, and configures it.
+-- Variables:
+-- elementType: String identifier for the WoW UI object instance ("Button", "StatusBar", etc).
+-- parent: The parent frame mapping containment hierarchies.
+-- options: Structural layout and initialization configurations.
 -------------------------------------------------------------------------------
 
---- Dynamically acquires a recycled or brand-new UI element of the specified type.
--- @param elementType String value: "Button", "StatusBar", "Frame", "Texture", or "FontString".
--- @param parent The parent frame mapping containment hierarchies.
--- @param options Structural layout and initialization configurations.
--- @return element The configured UI element.
+-- Dynamically acquires a recycled or brand-new UI element of the specified type.
 function Context:AcquireElement(elementType, parent, options)
     if not self.pools then
         self:InitializeFrameworkPools(parent or UIParent)
@@ -143,12 +181,9 @@ function Context:AcquireElement(elementType, parent, options)
     if not pool then return end
     
     -- Acquire element from the respective type-safe hotel.
-    -- element: The WoW UI object instance.
-    -- isNew: Boolean indicating if this is a brand new object (true) or recycled (false).
     local element, isNew = pool:Acquire()
     
     -- Dynamically enforce parenthood update if needed.
-    -- GetParent() returns the current parent frame.
     if element.SetParent and parent and element:GetParent() ~= parent then
         element:SetParent(parent)
     end
@@ -156,27 +191,14 @@ function Context:AcquireElement(elementType, parent, options)
     -- 1. Type-Specific Initialization (Only executed upon fresh memory instantiation)
     if isNew then
         if elementType == "StatusBar" then
-            -- Set up neutral dark channel track once
-            -- CreateTexture args:
-            -- 1: nil (name)
-            -- 2: "BACKGROUND" (draw layer)
             local background = element:CreateTexture(nil, "BACKGROUND")
             background:SetAllPoints()
-            -- SetColorTexture args:
-            -- 1: 0.02 (Red)
-            -- 2: 0.02 (Green)
-            -- 3: 0.03 (Blue)
-            -- 4: 0.50 (Alpha)
-            background:SetColorTexture(0.02, 0.02, 0.03, 0.50) -- #050508
+            local bgColor = options.bgColor or lib.DefaultStyles.colors.white
+            background:SetColorTexture(unpack(bgColor))
             element.background = background
-            
             local fill = element:CreateStatusBarTexture()
-            -- SetColorTexture args:
-            -- 1: 0.30 (Red)
-            -- 2: 0.00 (Green)
-            -- 3: 0.40 (Blue)
-            -- 4: 1.00 (Alpha)
-            fill:SetColorTexture(0.30, 0.00, 0.40, 1.00) -- #4D0066
+            local fillColor = options.fillColor or options.color or lib.DefaultStyles.colors.background
+            fill:SetColorTexture(unpack(fillColor))
             element:SetStatusBarTexture(fill)
         end
     end
@@ -223,9 +245,12 @@ function Context:AcquireElement(elementType, parent, options)
         if options.value then
             element:SetValue(options.value)
         end
-        if options.color then
-            element:GetStatusBarTexture():SetColorTexture(unpack(options.color))
+        local bgColor = options.bgColor or lib.DefaultStyles.colors.white
+        if element.background then
+            element.background:SetColorTexture(unpack(bgColor))
         end
+        local fillColor = options.fillColor or options.color or lib.DefaultStyles.colors.background
+        element:GetStatusBarTexture():SetColorTexture(unpack(fillColor))
     elseif elementType == "Texture" then
         if options.texturePath then
             element:SetTexture(options.texturePath)
@@ -244,6 +269,97 @@ function Context:AcquireElement(elementType, parent, options)
         if options.color then
             element:SetTextColor(unpack(options.color))
         end
+    elseif elementType == "Frame" then
+        if options.onUpdate then
+            element.onUpdateCallback = options.onUpdate
+            element:SetScript("OnUpdate", function(self, ...)
+                if self.onUpdateCallback then
+                    self.onUpdateCallback(self, ...)
+                end
+            end)
+        end
+        if options.onEvent then
+            element.onEventCallback = options.onEvent
+            element:SetScript("OnEvent", function(self, ...)
+                if self.onEventCallback then
+                    self.onEventCallback(self, ...)
+                end
+            end)
+        end
+    elseif elementType == "CheckButton" then
+        if options.checked ~= nil then
+            element:SetChecked(options.checked)
+        end
+        if options.onClick then
+            element.onClickCallback = options.onClick
+            element:SetScript("OnClick", function(self, ...)
+                if self.onClickCallback then
+                    self.onClickCallback(self, ...)
+                end
+            end)
+        end
+        if options.text then
+            local textString = element.Text or _G[element:GetName().."Text"]
+            if textString and textString.SetText then
+                textString:SetText(options.text)
+            end
+        end
+    elseif elementType == "EditBox" then
+        if options.text then
+            element:SetText(options.text)
+        end
+        if options.onTextChanged then
+            element.onTextChangedCallback = options.onTextChanged
+            element:SetScript("OnTextChanged", function(self, ...)
+                if self.onTextChangedCallback then
+                    self.onTextChangedCallback(self, ...)
+                end
+            end)
+        end
+        if options.onEnterPressed then
+            element.onEnterPressedCallback = options.onEnterPressed
+            element:SetScript("OnEnterPressed", function(self, ...)
+                if self.onEnterPressedCallback then
+                    self.onEnterPressedCallback(self, ...)
+                end
+            end)
+        end
+        if options.onEscapePressed then
+            element.onEscapePressedCallback = options.onEscapePressed
+            element:SetScript("OnEscapePressed", function(self, ...)
+                if self.onEscapePressedCallback then
+                    self.onEscapePressedCallback(self, ...)
+                end
+            end)
+        end
+    elseif elementType == "ScrollFrame" then
+        if options.scrollChild then
+            element:SetScrollChild(options.scrollChild)
+        end
+    elseif elementType == "Slider" then
+        if options.minVal and options.maxVal then
+            element:SetMinMaxValues(options.minVal, options.maxVal)
+        end
+        if options.value then
+            element:SetValue(options.value)
+        end
+        if options.valueStep then
+            element:SetValueStep(options.valueStep)
+        end
+        if options.onValueChanged then
+            element.onValueChangedCallback = options.onValueChanged
+            element:SetScript("OnValueChanged", function(self, ...)
+                if self.onValueChangedCallback then
+                    self.onValueChangedCallback(self, ...)
+                end
+            end)
+        end
+    elseif elementType == "Model" then
+        if options.modelPath then
+            element:SetModel(options.modelPath)
+        elseif options.modelFileID then
+            element:SetModelFileID(options.modelFileID)
+        end
     end
     
     element:Show()
@@ -252,18 +368,20 @@ end
 
 -------------------------------------------------------------------------------
 -- 4. UNIFIED RELEASE GATEWAY
+-- Objective: Releases active elements back into their respective pools for future reuse.
+-- Variables:
+-- elementType: String identifier of the pool.
+-- element: The specific UI frame or layer to return.
 -------------------------------------------------------------------------------
 
---- Instantly releases a single active element back to its type-safe pool.
--- @param elementType String identifier of the pool.
--- @param element The specific UI frame or layer to return.
+-- Instantly releases a single active element back to its type-safe pool.
 function Context:ReleaseElement(elementType, element)
     if self.pools and self.pools[elementType] then
         self.pools[elementType]:Release(element)
     end
 end
 
---- Instantly releases all managed resources back into their active pools.
+-- Instantly releases all managed resources back into their active pools.
 -- Call this during global frame hides, tab changes, or component cleanups.
 function Context:ReleaseAllElements()
     if not self.pools then return end

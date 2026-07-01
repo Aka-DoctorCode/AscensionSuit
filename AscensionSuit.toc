@@ -1,9 +1,9 @@
-## Interface: 120007
+## Interface: 120007,120005
 ## Title: Ascension Suit
 ## Notes: My own UI/UX library. Also store third party libraries and shared files that my Ascension Add ons use in a single place.
 ## Author: Aka-DoctorCode
 ## Category: Library
-## Version: @project_version@
+## Version: @project-version@
 ## IconTexture: Interface\AddOns\AscensionSuit\Media\AkaDoctorCode.png
 ## X-Curse-Project-ID: 1402263
 ## X-Wago-ID: qKQmnnKx
