@@ -1,7 +1,7 @@
 <h1>@project-version@</h1>
 <ul>
-    <li>Update TOC</li>
-    <li>Added donate button to CurseForge project page</li>
+    <li>License Update</li>
+    <li>Readme Updated</li>
 </ul>
 <br>
 <h2>Positive feedback is always appreciated, it helps me to continue working on this project</h2>
