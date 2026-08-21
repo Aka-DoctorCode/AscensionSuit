@@ -15,7 +15,7 @@ Complete technical reference and index for all UI constructors in `Components/`.
 | [`04Text.lua`](file:///Applications/World%20of%20Warcraft/_retail_/Interface/AddOns/AscensionFactory/Components/04Text.lua) | `Context:createLabel(options)` | Single-line form label | `FontString` | `parent`, `text`, `fontSize`, `spaceBelow`, `point`, `xOffset`, `yOffset` |
 | [`04Text.lua`](file:///Applications/World%20of%20Warcraft/_retail_/Interface/AddOns/AscensionFactory/Components/04Text.lua) | `Context:createParagraph(options)` | Multi-line wrapped text body | `FontString` | `parent`, `text`, `fontSize`, `rightOffset`, `spaceBelow`, `xOffset`, `yOffset` |
 | [`05Button.lua`](file:///Applications/World%20of%20Warcraft/_retail_/Interface/AddOns/AscensionFactory/Components/05Button.lua) | `Context:createButton(options)` | Interactive styled push button | `Button`, Border `Texture`, Track `Texture`, `FontString` | `parent`, `name`, `width`, `height`, `text`, `onClick`, `tooltip`, `trackColors` |
-| [`05Button.lua`](file:///Applications/World%20of%20Warcraft/_retail_/Interface/AddOns/AscensionFactory/Components/05Button.lua) | `Context:createIconButton(options)` | Square geometric vector icon button | `Button`, Geometric vector `Texture[]` (`close`, `plus`, `minus`, etc.) | `size`, `iconType`, `iconColor`, `onClick`, `tooltip` |
+| [`05Button.lua`](file:///Applications/World%20of%20Warcraft/_retail_/Interface/AddOns/AscensionFactory/Components/05Button.lua) | `Context:createIconButton(options)` | Square geometric vector icon button | `Button`, Geometric vector `Texture[]` (`close`, `plus`, `minus`, `minimize`, `maximize`, `arrowdown`) | `size`, `iconType`, `iconColor`, `onClick`, `tooltip` |
 | [`05Button.lua`](file:///Applications/World%20of%20Warcraft/_retail_/Interface/AddOns/AscensionFactory/Components/05Button.lua) | `Context:createDialogButton(options)` | Semantic action button (`accept`/`cancel`/`neutral`) | `Button`, Border `Texture`, Track `Texture`, `FontString` | `variant`, `text`, `onClick`, `tooltip` |
 | [`06Toggle.lua`](file:///Applications/World%20of%20Warcraft/_retail_/Interface/AddOns/AscensionFactory/Components/06Toggle.lua) | `Context:createToggle(options)` | Animated binary switch (on/off) | `Button`, Border `Texture`, Track `Texture`, Sliding Thumb `Texture` | `width`, `height`, `padding`, `getter`, `setter`, `onClick`, `tooltip` |
 | [`07Checkbox.lua`](file:///Applications/World%20of%20Warcraft/_retail_/Interface/AddOns/AscensionFactory/Components/07Checkbox.lua) | `Context:createCheckbox(options)` | Checkbox row with vector checkmark | Row `Button`, Box Border `Texture`, Box Track `Texture`, Vector Check Leg `Texture[2]`, Label `FontString` | `text`, `checked`, `boxSize`, `getter`, `setter`, `onClick`, `tooltip` |
@@ -50,7 +50,7 @@ Creates the top-level window container styled with Obsidian metallic borders and
   - `closeButtonYOffset` (`number`, optional, default: `-8`): Vertical offset for close button.
   - `onClose` (`function(frame)`, optional): Custom close button handler.
 - **Instance Methods / Properties**:
-  - Standard WoW `Frame` API (`Show()`, `Hide()`, `SetPoint()`, etc.).
+  - Standard WoW `Frame` API (`Show()`, `Hide()`, `SetPoint()`, `SetSize()`, `SetParent()`, `GetPoint()`, `GetWidth()`, `GetHeight()`).
   - `frame.globalName` (`string`).
 
 ---
@@ -184,7 +184,7 @@ Creates semantic dialog action button with automated width and theme colors.
   - `"neutral"`: Standard metallic theme.
 - **Options Table (`options`)**:
   - `variant` (`string`, optional, default: `"neutral"`).
-  - `text` (`string`, optional): Defaults based on variant ("Accept", "Cancel", etc.).
+  - `text` (`string`, optional): Defaults based on variant ("Accept" for accept/confirm/success, "Cancel" for cancel/decline/danger, "Button" for neutral).
   - All standard `createButton` options.
 - **Return Value**: `button` (`Button`).
 
@@ -231,7 +231,9 @@ Creates checkbox row containing a square box, vector checkmark legs, and adjacen
   - `point`, `anchorPoint`, `xOffset`, `yOffset`, `relativeTo`, `relativePoint`.
 - **Instance Methods / Properties**:
   - `checkbox.isChecked` (`boolean`).
-  - `checkbox:SetChecked(bool)`.
+  - `checkbox:getChecked()` / `checkbox:GetChecked()`: Returns current checked boolean state.
+  - `checkbox:setChecked(isChecked)` / `checkbox:SetChecked(isChecked)`: Updates checked state and checkmark visibility.
+  - `checkbox:setText(newText)` / `checkbox:SetText(newText)`: Updates label text and resizes checkbox frame.
 
 ---
 
@@ -308,11 +310,11 @@ Precision slider and scrollbar supporting horizontal and vertical orientations, 
   - `point`, `anchorPoint`, `xOffset`, `yOffset`, `relativeTo`, `relativePoint`.
 - **Instance Methods (`slider`)**:
   - `slider:getValue()` / `slider:GetValue()`: Returns current value.
-  - `slider:setValue(val, isSilent, isUserInput)` / `slider:SetValue(...)`.
-  - `slider:setMinMaxValues(min, max)` / `slider:SetMinMaxValues(...)`.
-  - `slider:getMinMaxValues()` / `slider:GetMinMaxValues()`.
-  - `slider:setStep(step)` / `slider:SetStep(step)`.
-  - `slider:setThumbSize(size)` / `slider:SetThumbSize(size)`.
+  - `slider:setValue(val, isSilent, isUserInput)` / `slider:SetValue(val, isSilent, isUserInput)`: Updates current slider value.
+  - `slider:setMinMaxValues(min, max)` / `slider:SetMinMaxValues(min, max)`: Sets lower and upper value bounds.
+  - `slider:getMinMaxValues()` / `slider:GetMinMaxValues()`: Returns `min, max`.
+  - `slider:setStep(step)` / `slider:SetStep(step)`: Updates step snapping increment.
+  - `slider:setThumbSize(size)` / `slider:SetThumbSize(size)`: Updates thumb handle size.
 
 ---
 
@@ -341,13 +343,13 @@ Joined numeric stepper combining minus button, centered input field, and plus bu
   - `point`, `anchorPoint`, `xOffset`, `yOffset`, `relativeTo`, `relativePoint`.
 - **Instance Methods (`stepper`)**:
   - `stepper:getValue()` / `stepper:GetValue()`: Returns numerical value.
-  - `stepper:setValue(val, isSilent, isUserInput)` / `stepper:SetValue(...)`.
-  - `stepper:setMinMaxValues(min, max)` / `stepper:SetMinMaxValues(...)`.
-  - `stepper:getMinMaxValues()` / `stepper:GetMinMaxValues()`.
-  - `stepper:setStep(step)` / `stepper:SetStep(step)`.
-  - `stepper:setEnabled(enabled)` / `stepper:SetEnabled(enabled)`.
-  - `stepper:enable()` / `stepper:Enable()`.
-  - `stepper:disable()` / `stepper:Disable()`.
+  - `stepper:setValue(val, isSilent, isUserInput)` / `stepper:SetValue(val, isSilent, isUserInput)`: Updates numerical value.
+  - `stepper:setMinMaxValues(min, max)` / `stepper:SetMinMaxValues(min, max)`: Sets lower and upper value bounds.
+  - `stepper:getMinMaxValues()` / `stepper:GetMinMaxValues()`: Returns `min, max`.
+  - `stepper:setStep(step)` / `stepper:SetStep(step)`: Updates increment/decrement step amount.
+  - `stepper:setEnabled(enabled)` / `stepper:SetEnabled(enabled)`: Toggles interactive state.
+  - `stepper:enable()` / `stepper:Enable()`: Enables stepper and sub-controls.
+  - `stepper:disable()` / `stepper:Disable()`: Disables stepper and sub-controls.
 
 ---
 
