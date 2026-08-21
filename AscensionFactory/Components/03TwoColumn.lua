@@ -39,7 +39,7 @@ function Context:createTwoColumns(options)
     -- Create the left side container frame and optionally name it.
     -- "Frame" is the basic empty UI container in WoW.
     -- parent: the frame this column belongs to.
-    local leftColumn = self:AcquireElement("Frame", parent, {})
+    local leftColumn = self:acquireElement("Frame", parent, {})
     if name then _G[name .. "Left"] = leftColumn end
     
     -- Anchor to the TOPLEFT of the parent, stretching to the middle (TOP).
@@ -48,7 +48,7 @@ function Context:createTwoColumns(options)
     leftColumn:SetPoint("TOPRIGHT", parent, "TOP", -5, yOffset)
     
     -- Create the right side container frame and optionally name it.
-    local rightColumn = self:AcquireElement("Frame", parent, {})
+    local rightColumn = self:acquireElement("Frame", parent, {})
     if name then _G[name .. "Right"] = rightColumn end
     
     -- Anchor to the TOP (middle) of the parent, stretching to the TOPRIGHT.
@@ -58,7 +58,7 @@ function Context:createTwoColumns(options)
     -- Helper utility to conditionally create an inner background texture layer.
     local function setBackground(frame, color)
         -- Acquire a "Texture" object directly, rendering on the "BACKGROUND" layer.
-        local background = self:AcquireElement("Texture", frame, { drawLayer = "BACKGROUND" })
+        local background = self:acquireElement("Texture", frame, { drawLayer = "BACKGROUND" })
         background:SetAllPoints() -- Fill the column's entire area.
         if color then
             background:SetColorTexture(unpack(color))
@@ -82,3 +82,18 @@ function Context:createTwoColumns(options)
 
     return leftColumn, rightColumn
 end
+
+-------------------------------------------------------------------------------
+-- 3. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for custom split ratios (e.g. 1/3 and 2/3), vertical dividers, and multi-column grids.
+--
+-- How to expand:
+-- 1. Asymmetrical Split Ratios:
+--    Support `options.ratio = 0.33` (33% / 67% split) by computing explicit widths from `parent:GetWidth()`
+--    instead of anchoring strictly to `TOP` center.
+-- 2. Center Divider Line:
+--    Add optional center separator texture (`options.showDivider = true`) between the two columns
+--    using `surfaceLight` or `steelHighlight` color.
+-- 3. Multi-Column Generalization:
+--    Create `Context:createColumns(options)` supporting N columns dynamically computed from an array of width weights.
+-------------------------------------------------------------------------------

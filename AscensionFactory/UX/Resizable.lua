@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Project: AscensionSuit
+-- Project: AscensionFactory
 -- Author: Aka-DoctorCode
 -- File: Resizable.lua
 -------------------------------------------------------------------------------
@@ -7,6 +7,11 @@
 
 -------------------------------------------------------------------------------
 -- 1. INITIALIZATION
+-- Objective: Initialize UX namespace and link to global AscensionFactory library.
+-- Variables:
+-- MAJOR: Namespace identifier for addon library.
+-- lib: Global AscensionFactory library object.
+-- UX: Namespace table for UX helper functions.
 -------------------------------------------------------------------------------
 local MAJOR = "AscensionFactory"
 local lib = LibStub:GetLibrary(MAJOR)
@@ -17,6 +22,11 @@ lib.UX = UX
 
 -------------------------------------------------------------------------------
 -- 2. RESIZE LOGIC
+-- Objective: Configure frame to be resizable and add visual grabber handle at bottom-right.
+-- Variables:
+-- frame: Frame UI object made resizable.
+-- minWidth: Minimum allowable width when resizing.
+-- minHeight: Minimum allowable height when resizing.
 -------------------------------------------------------------------------------
 --- Configures a frame to be resizable and adds a visual grabber handle at the bottom-right.
 function UX:makeResizable(frame, minWidth, minHeight)
@@ -35,13 +45,19 @@ function UX:makeResizable(frame, minWidth, minHeight)
     end
     
     -- Create Grabber Handle
-    -- CreateFrame args:
-    -- 1: "Button" (frame type)
-    -- 2: nil (global name)
-    -- 3: frame (parent frame)
-    local resizeBtn = CreateFrame("Button", nil, frame)
-    resizeBtn:SetSize(16, 16) -- Force it to be 16x16 pixels.
-    resizeBtn:SetPoint("BOTTOMRIGHT") -- Anchor it exclusively to the absolute bottom-right corner.
+    local resizeBtn = frame.resizeBtn
+    if not resizeBtn then
+        if frame.uiContext and frame.uiContext.acquireElement then
+            resizeBtn = frame.uiContext:acquireElement("Button", frame, { width = 16, height = 16 })
+        else
+            resizeBtn = CreateFrame("Button", nil, frame)
+            resizeBtn:SetSize(16, 16)
+        end
+        frame.resizeBtn = resizeBtn
+    end
+    resizeBtn:ClearAllPoints()
+    resizeBtn:SetPoint("BOTTOMRIGHT")
+    resizeBtn:Show()
     
     -- Assign standard Blizzard chat-frame drag textures to make it look like a resizing grip.
     resizeBtn:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
@@ -70,3 +86,19 @@ function UX:makeResizable(frame, minWidth, minHeight)
     -- Store a reference to the button on the frame so it can be accessed or modified later if needed.
     frame.resizeBtn = resizeBtn
 end
+
+-------------------------------------------------------------------------------
+-- 3. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for custom resize handles, aspect ratio locking, and on-resize relayout callbacks.
+--
+-- How to expand:
+-- 1. Resize Callbacks:
+--    Hook `frame:HookScript("OnSizeChanged", function(self, w, h) ... end)` to dynamically recalculate
+--    child column widths or scroll area bounds during user resizing.
+-- 2. Four-Corner / Edge Handles:
+--    Add optional side/corner handles (`"TOPRIGHT"`, `"BOTTOMLEFT"`, `"RIGHT"`, `"BOTTOM"`) by creating
+--    additional grabber buttons calling `frame:StartSizing("<Point>")`.
+-- 3. Dimension Persistence:
+--    Store final `frame:GetSize()` values into `config.width` and `config.height` inside `OnMouseUp`
+--    for automatic restoration across reload.
+-------------------------------------------------------------------------------

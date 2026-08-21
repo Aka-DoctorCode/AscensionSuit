@@ -1,67 +1,85 @@
 -------------------------------------------------------------------------------
--- Project: AscensionSuit
+-- Project: AscensionFactory
 -- Author: Aka-DoctorCode
 -- File: Context.lua
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
 -------------------------------------------------------------------------------
--- 1. INITIALIZATION
--- Objective: Initialize the LayoutModel namespace and link it to the global AscensionFactory library.
+-- 1. INITIALIZATION & NAMESPACE RESOLUTION
+-- Objective: Retrieve library instance and establish global default styling tokens.
 -- Variables:
--- MAJOR: The namespace identifier for the addon library.
+-- MAJOR (string): Namespace identifier for AscensionFactory.
+-- lib (table): Shared library instance.
 -------------------------------------------------------------------------------
 local MAJOR = "AscensionFactory"
--- LibStub:GetLibrary retrieves the globally registered instance of our factory library.
 local lib = LibStub:GetLibrary(MAJOR)
-if not lib then return end -- Stop execution if the library wasn't found in memory.
+if not lib then return end
 
 -------------------------------------------------------------------------------
--- 2. DEFAULT STYLES
--- Objective: Define the central repository for all default UI rendering tokens (colors, fonts, textures).
+-- 2. DEFAULT STYLE TOKENS (Obsidian Cyberpunk Palette)
+-- Objective: Central registry for default rendering tokens (RGBA colors, font objects, textures).
 -- Variables:
+-- defaultStyles (table): Master design system configuration.
 -------------------------------------------------------------------------------
--- DefaultStyles acts as the central repository for all UI rendering tokens.
-lib.DefaultStyles = lib.DefaultStyles or {
+lib.defaultStyles = lib.defaultStyles or lib.DefaultStyles or {
     colors = {
-        -- Backgrounds Colors
-        background      = {0.010,0.005,0.020,0.90},--#030105E6
-        panelBackground = {0.010,0.005,0.020,0.50},--#03010580
-        surfaceDark     = {0.040,0.035,0.060,0.90},--#0A090FE6
-        surfaceLight    = {0.120,0.120,0.180,0.90},--#1F1F2EE6
-        surfaceHover    = {0.180,0.180,0.260,0.90},--#2E2E42E6
-        border          = {0.102,0.000,0.200,1.00},--#1A0033FF
-        -- Detail Colors
-        primary         = {0.141,0.000,0.275,1.00},--#240046FF
-        primaryHover    = {0.286,0.000,0.761,1.00},--#4900C2FF        
-        primaryActive   = {0.169,0.114,0.259,1.00},--#2B1D42FF
-        -- Common Colors
-        red             = {1.000,0.270,0.270,1.00},--#FF4545FF
-        redHover        = {1.000,0.400,0.400,1.00},--#FF6666FF
-        black           = {0.000,0.000,0.000,1.00},--#000000FF
-        gold            = {0.930,0.730,0.120,1.00},--#EDBA1FFF
-        white           = {1.000,1.000,1.000,1.00},--#FFFFFFFF
+        -- Deep Obsidian Metallic Backgrounds
+        background      = { 0.008, 0.012, 0.020, 0.96 }, -- #020305F5
+        panelBackground = { 0.016, 0.024, 0.039, 0.60 }, -- #04060A99
+        surfaceDark     = { 0.012, 0.020, 0.031, 0.90 }, -- #030508E6
+        surfaceLight    = { 0.027, 0.039, 0.059, 0.90 }, -- #070A0FE6
+        surfaceHover    = { 0.055, 0.075, 0.110, 0.95 }, -- #0E131CF2
+        border          = { 0.078, 0.102, 0.141, 1.00 }, -- #141A24FF
+        steelHighlight  = { 0.122, 0.153, 0.208, 1.00 }, -- #1F2735FF
+
+        -- Neon Orange Primary Accents (Laser Glow)
+        primary         = { 1.000, 0.380, 0.000, 1.00 }, -- #FF6100FF
+        primaryHover    = { 1.000, 0.540, 0.050, 1.00 }, -- #FF8A0DFF
+        primaryActive   = { 0.700, 0.220, 0.000, 1.00 }, -- #B33800FF
+
+        -- Hyper-Saturated Cyberpunk Neon Tokens (Pure Laser Glow)
+        -- neonCyan        = {0.000, 0.968, 1.000, 1.00}, -- #00F7FFFF
+        -- neonGold        = {1.000, 0.918, 0.000, 1.00}, -- #FFEA00FF
+        neonRed         = { 1.000, 0.000, 0.150, 1.00 }, -- #FF0026FF (Pure Laser Red)
+        neonGreen       = { 0.000, 1.000, 0.400, 1.00 }, -- #00FF66FF
+        -- neonPurple      = {0.690, 0.000, 1.000, 1.00}, -- #B000FFFF
+
+        -- Standard / Semantic Colors
+        greenHover      = { 0.200, 1.000, 0.550, 1.00 }, -- #33FF8CFF (Electric Mint Green)
+        greenActive     = { 0.000, 0.650, 0.250, 1.00 }, -- #00A640FF (Deep Emerald Green)
+        redHover        = { 1.000, 0.180, 0.180, 1.00 }, -- #FF2E2EFF (Electric Scarlet Red)
+        redActive       = { 0.600, 0.000, 0.100, 1.00 }, -- #99001AFF (Deep Crimson)
+        black           = { 0.020, 0.027, 0.039, 1.00 }, -- #05070AFF
+        white           = { 0.922, 0.973, 1.000, 1.00 }, -- #EBF8FFFF
     },
-    -- Font paths map to default WoW global fonts.
     fonts = {
-        -- Largest built-in font
-        header = "GameFontHighlightHuge",  
-        -- Medium built-in font
-        label  = "GameFontHighlightLarge", 
-        -- Small standard font
-        text   = "GameFontNormal",         
+        header = "GameFontHighlightHuge",
+        label  = "GameFontHighlightLarge",
+        text   = "GameFontNormal",
     },
-    -- Texture paths refer to internal WoW texture files used across the client.
     textures = {
-        -- Standard solid white texture for tinting
-        background = "Interface\\ChatFrame\\ChatFrameBackground", 
-        -- Pure white 8x8 square for basic shapes
+        background = "Interface\\ChatFrame\\ChatFrameBackground",
         flat       = "Interface\\Buttons\\WHITE8X8",
-        -- Standard Blizzard tooltip border graphic
-        edge       = "Interface\\Tooltips\\UI-Tooltip-Border", 
-        -- Dropdown arrow icon
-        arrow      = "Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up", 
-        -- Glowing spark used on sliders
-        spark      = "Interface\\CastingBar\\UI-CastingBar-Spark", 
+        edge       = "Interface\\Tooltips\\UI-Tooltip-Border",
+        arrow      = "Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up",
+        spark      = "Interface\\CastingBar\\UI-CastingBar-Spark",
     }
 }
+lib.DefaultStyles = lib.defaultStyles
+
+-------------------------------------------------------------------------------
+-- 3. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for custom theming, palette overrides, and LibSharedMedia integration.
+--
+-- How to expand:
+-- 1. Theme Presets:
+--    Add preset palette tables (e.g. `lib.cyanNeonTheme`, `lib.emeraldTheme`) containing
+--    matching keys for `colors`, `fonts`, and `textures`.
+-- 2. Dynamic Runtime Theming:
+--    Modify `uiContext.styles.colors.primary` at runtime and call `:updateAppearance()`
+--    on active widgets to dynamically re-skin UI without reload.
+-- 3. LibSharedMedia (LSM) Integration:
+--    Map `fonts` and `textures` keys to `LibStub("LibSharedMedia-3.0"):Fetch("font", name)`
+--    to support user-selected fonts and bar textures.
+-------------------------------------------------------------------------------

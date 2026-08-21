@@ -26,62 +26,79 @@ if not Context then return end
 -- button, statusBar, frame, texture, fontString: The UI element being reset.
 -------------------------------------------------------------------------------
 
+-- Helper to hide all attached regions (textures, fontstrings) on a frame before returning to pool.
+local function hideAllRegions(frame)
+    if frame.GetRegions then
+        local regions = { frame:GetRegions() }
+        for _, region in ipairs(regions) do
+            region:Hide()
+        end
+    end
+end
+
 -- Cleans up a standard button before returning it to the pool.
-local function ResetButton(pool, button)
+local function resetButton(pool, button)
     button:Hide()
     button:ClearAllPoints()
     button:SetScript("OnClick", nil)
-    button:SetScript("OnEnter", nil)
-    button:SetScript("OnLeave", nil)
     button:SetEnabled(true)
+    hideAllRegions(button)
     
-    local fontString = button:GetFontString()
-    if fontString then
-        fontString:SetAlpha(1.00)
-    end
-    
-    local normalTexture = button:GetNormalTexture()
-    if normalTexture then
-        normalTexture:SetDesaturated(false)
-    end
-    
+    button.trackColors = nil
+    button.borderColors = nil
+    button.labelColors = nil
+    button.hoverConfig = nil
+    button.updateAppearance = nil
     button.onClickCallback = nil
+    button.uiContext = nil
+    button.elementType = nil
 end
 
 -- Cleans up a standard status bar before returning it to the pool.
-local function ResetStatusBar(pool, statusBar)
+local function resetStatusBar(pool, statusBar)
     statusBar:Hide()
     statusBar:ClearAllPoints()
     statusBar:SetMinMaxValues(0, 1)
     statusBar:SetValue(0)
     statusBar:SetStatusBarColor(1, 1, 1, 1) -- #FFFFFF
     statusBar:SetScript("OnValueChanged", nil)
+    statusBar.uiContext = nil
+    statusBar.elementType = nil
 end
 
 -- Cleans up a generic panel frame before returning it to the pool.
-local function ResetFrame(pool, frame)
+local function resetFrame(pool, frame)
     frame:Hide()
     frame:ClearAllPoints()
     frame:SetScript("OnUpdate", nil)
     frame:SetScript("OnEvent", nil)
     frame:UnregisterAllEvents()
+    hideAllRegions(frame)
     frame.onUpdateCallback = nil
     frame.onEventCallback = nil
+    frame.hoverConfig = nil
+    frame.updateAppearance = nil
+    frame.uiContext = nil
+    frame.elementType = nil
 end
 
 -- Cleans up a CheckButton.
-local function ResetCheckButton(pool, button)
+local function resetCheckButton(pool, button)
     button:Hide()
     button:ClearAllPoints()
     button:SetChecked(false)
     button:SetScript("OnClick", nil)
-    button:SetScript("OnEnter", nil)
-    button:SetScript("OnLeave", nil)
+    button:SetEnabled(true)
+    hideAllRegions(button)
     button.onClickCallback = nil
+    button.hoverConfig = nil
+    button.updateAppearance = nil
+    button.uiContext = nil
+    button.elementType = nil
 end
 
 -- Cleans up an EditBox.
-local function ResetEditBox(pool, editBox)
+local function resetEditBox(pool, editBox)
     editBox:Hide()
     editBox:ClearAllPoints()
     editBox:SetText("")
@@ -92,49 +109,71 @@ local function ResetEditBox(pool, editBox)
     editBox.onTextChangedCallback = nil
     editBox.onEnterPressedCallback = nil
     editBox.onEscapePressedCallback = nil
+    editBox.uiContext = nil
+    editBox.elementType = nil
 end
 
 -- Cleans up a ScrollFrame.
-local function ResetScrollFrame(pool, scrollFrame)
+local function resetScrollFrame(pool, scrollFrame)
     scrollFrame:Hide()
     scrollFrame:ClearAllPoints()
-    scrollFrame:SetScrollChild(nil)
+    local scrollChild = scrollFrame:GetScrollChild()
+    if scrollChild then
+        scrollChild:Hide()
+        scrollChild:ClearAllPoints()
+    end
+    scrollFrame.uiContext = nil
+    scrollFrame.elementType = nil
 end
 
 -- Cleans up a Slider.
-local function ResetSlider(pool, slider)
+local function resetSlider(pool, slider)
     slider:Hide()
     slider:ClearAllPoints()
     slider:SetMinMaxValues(0, 1)
     slider:SetValue(0)
     slider:SetScript("OnValueChanged", nil)
     slider.onValueChangedCallback = nil
+    slider.uiContext = nil
+    slider.elementType = nil
 end
 
 -- Cleans up a Model.
-local function ResetModel(pool, model)
+local function resetModel(pool, model)
     model:Hide()
     model:ClearAllPoints()
     model:ClearModel()
+    model.uiContext = nil
+    model.elementType = nil
 end
 
 -- Cleans up a pooled texture layer.
-local function ResetTexture(pool, texture)
+local function resetTexture(pool, texture)
     texture:Hide()
     texture:ClearAllPoints()
     texture:SetTexture(nil)
     texture:SetAtlas(nil)
     texture:SetVertexColor(1, 1, 1, 1) -- #FFFFFF
+    texture:SetAlpha(1.00)
+    texture:SetRotation(0)
+    texture.uiContext = nil
+    texture.elementType = nil
 end
 
-
 -- Cleans up a pooled FontString layer.
-local function ResetFontString(pool, fontString)
+local function resetFontString(pool, fontString)
     fontString:Hide()
     fontString:ClearAllPoints()
     fontString:SetText("")
     fontString:SetTextColor(1, 1, 1, 1) -- #FFFFFF
     fontString:SetAlpha(1.00)
+    fontString:SetFontObject("GameFontNormal")
+    fontString:SetShadowOffset(0, 0)
+    fontString:SetWordWrap(false)
+    fontString:SetJustifyH("LEFT")
+    fontString:SetWidth(0)
+    fontString.uiContext = nil
+    fontString.elementType = nil
 end
 
 -------------------------------------------------------------------------------
@@ -145,20 +184,20 @@ end
 -------------------------------------------------------------------------------
 
 -- Lazy-initializes the multi-pool system registry within the framework context.
-function Context:InitializeFrameworkPools(parentFrame)
+function Context:initializeFrameworkPools(parentFrame)
     if self.pools then return end
     
     self.pools = {
-        Button = CreateFramePool("Button", parentFrame, nil, ResetButton),
-        StatusBar = CreateFramePool("StatusBar", parentFrame, nil, ResetStatusBar),
-        Frame = CreateFramePool("Frame", parentFrame, nil, ResetFrame),
-        CheckButton = CreateFramePool("CheckButton", parentFrame, nil, ResetCheckButton),
-        EditBox = CreateFramePool("EditBox", parentFrame, nil, ResetEditBox),
-        ScrollFrame = CreateFramePool("ScrollFrame", parentFrame, nil, ResetScrollFrame),
-        Slider = CreateFramePool("Slider", parentFrame, nil, ResetSlider),
-        Model = CreateFramePool("Model", parentFrame, nil, ResetModel),
-        Texture = CreateTexturePool(parentFrame, "BACKGROUND", 0, nil, ResetTexture),
-        FontString = CreateFontStringPool(parentFrame, "ARTWORK", 0, "GameFontNormal", ResetFontString)
+        Button = CreateFramePool("Button", parentFrame, nil, resetButton),
+        StatusBar = CreateFramePool("StatusBar", parentFrame, "BackdropTemplate", resetStatusBar),
+        Frame = CreateFramePool("Frame", parentFrame, "BackdropTemplate", resetFrame),
+        CheckButton = CreateFramePool("CheckButton", parentFrame, nil, resetCheckButton),
+        EditBox = CreateFramePool("EditBox", parentFrame, nil, resetEditBox),
+        ScrollFrame = CreateFramePool("ScrollFrame", parentFrame, nil, resetScrollFrame),
+        Slider = CreateFramePool("Slider", parentFrame, nil, resetSlider),
+        Model = CreateFramePool("Model", parentFrame, nil, resetModel),
+        Texture = CreateTexturePool(parentFrame, "BACKGROUND", 0, nil, resetTexture),
+        FontString = CreateFontStringPool(parentFrame, "ARTWORK", 0, "GameFontNormal", resetFontString)
     }
 end
 
@@ -172,9 +211,9 @@ end
 -------------------------------------------------------------------------------
 
 -- Dynamically acquires a recycled or brand-new UI element of the specified type.
-function Context:AcquireElement(elementType, parent, options)
+function Context:acquireElement(elementType, parent, options)
     if not self.pools then
-        self:InitializeFrameworkPools(parent or UIParent)
+        self:initializeFrameworkPools(parent or UIParent)
     end
     
     local pool = self.pools[elementType]
@@ -182,6 +221,8 @@ function Context:AcquireElement(elementType, parent, options)
     
     -- Acquire element from the respective type-safe hotel.
     local element, isNew = pool:Acquire()
+    element.uiContext = self
+    element.elementType = elementType
     
     -- Dynamically enforce parenthood update if needed.
     if element.SetParent and parent and element:GetParent() ~= parent then
@@ -228,7 +269,10 @@ function Context:AcquireElement(elementType, parent, options)
     -- 3. Dynamic Configuration Applications
     if elementType == "Button" then
         if options.text then
-            element:GetFontString():SetText(options.text)
+            local fontString = element:GetFontString() or element:CreateFontString(nil, "ARTWORK")
+            fontString:SetFontObject(options.font or lib.DefaultStyles.fonts.label)
+            fontString:SetText(options.text)
+            element:SetFontString(fontString)
         end
         if options.onClick then
             element.onClickCallback = options.onClick
@@ -239,11 +283,19 @@ function Context:AcquireElement(elementType, parent, options)
             end)
         end
     elseif elementType == "StatusBar" then
-        if options.minVal and options.maxVal then
-            element:SetMinMaxValues(options.minVal, options.maxVal)
+        if options.minValue and options.maxValue then
+            element:SetMinMaxValues(options.minValue, options.maxValue)
         end
         if options.value then
             element:SetValue(options.value)
+        end
+        if options.onValueChanged then
+            element.onValueChangedCallback = options.onValueChanged
+            element:SetScript("OnValueChanged", function(self, ...)
+                if self.onValueChangedCallback then
+                    self.onValueChangedCallback(self, ...)
+                end
+            end)
         end
         local bgColor = options.bgColor or lib.DefaultStyles.colors.white
         if element.background then
@@ -375,17 +427,69 @@ end
 -------------------------------------------------------------------------------
 
 -- Instantly releases a single active element back to its type-safe pool.
-function Context:ReleaseElement(elementType, element)
+function Context:releaseElement(elementType, element)
     if self.pools and self.pools[elementType] then
         self.pools[elementType]:Release(element)
     end
 end
 
+-- Instantly releases a single element and all its children/regions back to their pools.
+function Context:releaseElementAndChildren(element)
+    if not element then return end
+
+    -- Release all child frames first
+    if element.GetChildren then
+        local children = { element:GetChildren() }
+        for _, child in ipairs(children) do
+            self:releaseElementAndChildren(child)
+        end
+    end
+
+    -- Release all child regions (textures, fontstrings, etc.)
+    if element.GetRegions then
+        local regions = { element:GetRegions() }
+        for _, region in ipairs(regions) do
+            if region.elementType then
+                self:releaseElement(region.elementType, region)
+            end
+        end
+    end
+
+    -- Finally, release the element itself
+    if element.elementType then
+        self:releaseElement(element.elementType, element)
+    end
+end
+
 -- Instantly releases all managed resources back into their active pools.
 -- Call this during global frame hides, tab changes, or component cleanups.
-function Context:ReleaseAllElements()
+function Context:releaseAllElements()
     if not self.pools then return end
     for _, pool in pairs(self.pools) do
         pool:ReleaseAll()
     end
 end
+
+-- Backward compatibility aliases
+Context.AcquireElement = Context.acquireElement
+Context.ReleaseElement = Context.releaseElement
+Context.ReleaseElementAndChildren = Context.releaseElementAndChildren
+Context.InitializeFrameworkPools = Context.initializeFrameworkPools
+Context.ReleaseAllElements = Context.releaseAllElements
+
+-------------------------------------------------------------------------------
+-- 5. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for adding custom frame pools, specialized resetters, and memory debugging.
+--
+-- How to expand:
+-- 1. Register Custom Frame Pools:
+--    Add new object pools inside `initializeFrameworkPools` (e.g. `ColorSelect`, `MovieFrame`, `Cooldown`)
+--    using `CreateFramePool("<Type>", parentFrame, template, customResetFunction)`.
+-- 2. Custom Reset Logic:
+--    Ensure all state mutations, script bindings (`SetScript`), child references, and
+--    custom member variables attached during component lifecycle are cleared in the reset function
+--    to prevent cross-contamination when widgets are recycled.
+-- 3. Memory Debugging:
+--    Track pool growth by querying `pool:GetNumActive()` and `pool:EnumerateActive()`
+--    to ensure frames are properly recycled without leaking memory during tab switches or frame closures.
+-------------------------------------------------------------------------------

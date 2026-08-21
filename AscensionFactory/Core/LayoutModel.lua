@@ -166,6 +166,7 @@ function lib.LayoutModel:paragraph(elementID, text, rightOffset)
     })
 
     self:anchorElement(paragraphElement)
+    paragraphElement:SetPoint("RIGHT", self.currentParent, "RIGHT", rightOffset or -10, 0)
     return paragraphElement
 end
 
@@ -210,6 +211,24 @@ function lib.LayoutModel:toggle(elementID, getter, setter, width, height, onClic
     return toggleElement
 end
 
+-- Creates a checkbox element.
+function lib.LayoutModel:checkbox(elementID, text, getter, setter, size, onClick)
+    if not self.uiContext.createCheckbox then return nil end
+
+    local checkboxElement = self.uiContext:createCheckbox({
+        parent = self.currentParent,
+        name = elementID,
+        text = text,
+        getter = getter,
+        setter = setter,
+        size = size,
+        onClick = onClick
+    })
+
+    self:anchorElement(checkboxElement)
+    return checkboxElement
+end
+
 -------------------------------------------------------------------------------
 -- 5. SECTION MANAGEMENT
 -- Objective: Group elements dynamically using BOTTOM-anchoring for auto-resizing.
@@ -219,7 +238,7 @@ end
 
 -- Begins a new layout section with its own backdrop and relative positioning.
 function lib.LayoutModel:beginSection(width)
-    local section = self.uiContext:AcquireElement("Frame", self.currentParent, {})
+    local section = self.uiContext:acquireElement("Frame", self.currentParent, {})
     
     -- default indent for sections
     self.nextXOffset = self.nextXOffset or 8
@@ -291,7 +310,7 @@ end
 function lib.LayoutModel:beginColumn(xOffset, width)
     -- If this is the start of a column row, create a transparent container
     if not self.columnContainer then
-        self.columnContainer = self.uiContext:AcquireElement("Frame", self.currentParent, {})
+        self.columnContainer = self.uiContext:acquireElement("Frame", self.currentParent, {})
         -- We temporarily disable nextXOffset/nextVerticalGap for this structural frame
         local oldX, oldY = self.nextXOffset, self.nextVerticalGap
         self.nextXOffset, self.nextVerticalGap = 0, 0
@@ -355,10 +374,28 @@ end
 -------------------------------------------------------------------------------
 
 if Context then
-    -- Creates a specialized layout model within the context.
+    --- Creates a specialized layout model cursor within the context.
+    --- @param parent table The container frame to manage layout within.
+    --- @return table|nil layoutInstance The new LayoutModel instance.
     function Context:createLayoutModel(parent)
         if lib.LayoutModel then
             return lib.LayoutModel:new(self, parent)
         end
     end
 end
+
+-------------------------------------------------------------------------------
+-- 8. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for adding new component wrappers, grid systems, and auto-scrolling containers.
+--
+-- How to expand:
+-- 1. Adding New Component Wrappers:
+--    Implement new wrapper methods on `lib.LayoutModel` (e.g. `layout:slider(...)`, `layout:stepper(...)`, `layout:inputField(...)`)
+--    that call `self.uiContext:create<Widget>()` and route the returned element through `self:anchorElement(element)`.
+-- 2. Grid Layout Engines:
+--    Implement `layout:beginGrid(columns, cellWidth, cellHeight, gapX, gapY)` to arrange items in a matrix
+--    by computing row and column coordinate offsets mathematically.
+-- 3. Scrollable Content Sizing:
+--    Use `layout:columnsFinalize(scrollChild, bottomPadding)` to automatically anchor the bottom of a ScrollChild
+--    frame to the lowest element placed in the layout flow, allowing the scroll range to match content height dynamically.
+-------------------------------------------------------------------------------

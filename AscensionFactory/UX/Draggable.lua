@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Project: AscensionSuit
+-- Project: AscensionFactory
 -- Author: Aka-DoctorCode
 -- File: Draggable.lua
 -------------------------------------------------------------------------------
@@ -7,6 +7,11 @@
 
 -------------------------------------------------------------------------------
 -- 1. INITIALIZATION
+-- Objective: Initialize UX namespace and link to global AscensionFactory library.
+-- Variables:
+-- MAJOR: Namespace identifier for addon library.
+-- lib: Global AscensionFactory library object.
+-- UX: Namespace table for UX helper functions.
 -------------------------------------------------------------------------------
 local MAJOR = "AscensionFactory"
 local lib = LibStub:GetLibrary(MAJOR)
@@ -17,6 +22,10 @@ lib.UX = UX
 
 -------------------------------------------------------------------------------
 -- 2. MOVEMENT LOGIC
+-- Objective: Enable frame to be moved by clicking and dragging with left mouse button.
+-- Variables:
+-- frame: Frame UI object made movable.
+-- config: Optional persistence configuration table containing coordinates.
 -------------------------------------------------------------------------------
 --- Enables a frame to be moved by clicking and dragging with the left mouse button.
 function UX:makeMovable(frame, config)
@@ -72,3 +81,19 @@ function UX:makeMovable(frame, config)
         frame:SetPoint(config.point, _G.UIParent, config.relativePoint or config.point, config.x or 0, config.y or 0)
     end
 end
+
+-------------------------------------------------------------------------------
+-- 3. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for persistent position storage, title bar drag handles, and screen clamping.
+--
+-- How to expand:
+-- 1. SavedVariables Integration:
+--    Pass an entry from your addon's SavedVariables table as `config` (e.g. `MyAddonDB.windowPosition`)
+--    to automatically persist and restore the frame's position across game sessions and reloads.
+-- 2. Title Bar Handle Restriction:
+--    Restrict dragging to a top header bar rather than the entire frame body by calling `makeMovable`
+--    on a child title bar frame and proxying the `StartMoving()` / `StopMovingOrSizing()` calls to the parent window.
+-- 3. Snap-to-Grid / Edge Snapping:
+--    Hook `OnDragStop` to calculate proximity to screen edges or adjacent addon windows and snap
+--    the frame coordinates to the nearest alignment threshold.
+-------------------------------------------------------------------------------

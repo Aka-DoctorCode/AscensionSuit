@@ -6,13 +6,13 @@
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
 
 -------------------------------------------------------------------------------
--- 1. INITIALIZATION
--- Objective: Initialize the AscensionFactory library using LibStub and prepare the Context namespace.
+-- 1. INITIALIZATION & NAMESPACE REGISTRATION
+-- Objective: Register AscensionFactory with LibStub and establish the shared Context prototype.
 -- Variables:
--- MAJOR: Name of the addon library.
--- MINOR: Version number of the library.
--- lib: Global shared library object provided by LibStub. It ensures that only the newest version of this library gets loaded globally.
--- Context: An Object factory table where state and creation methods reside.
+-- MAJOR (string): Identifier for global library registration.
+-- MINOR (number): Incremental version number for LibStub upgrade resolution.
+-- lib (table): Shared library instance maintained by LibStub.
+-- Context (table): Prototype table containing element factory methods and lifecycle management.
 -------------------------------------------------------------------------------
 
 local MAJOR, MINOR = "AscensionFactory", 1
@@ -23,29 +23,44 @@ local Context = lib.Context or {}
 if not lib.Context then lib.Context = Context end
 
 -------------------------------------------------------------------------------
--- 2. CONTEXT OBJECT DEFINITION
--- Objective: Define the core Context class that addons will instantiate to interact with AscensionFactory.
--- Variables:
--- uiContext: The newly created instance of the Context class.
+-- 2. CONTEXT OBJECT & FACTORY BLUEPRINT
+-- Objective: Establish object-oriented metatable linking for Context instances.
+-- Each consumer addon creates its own Context instance with its own styles and pools.
 -------------------------------------------------------------------------------
 -- Setup Lua OOP inheritance. __index to itself means any new table created from this blueprint will automatically have access to all its functions.
 Context.__index = Context
 
---- Initializes a new Context instance for elements of the addon. Containing styles and a layout model
---- @return table uiContext
-function lib:CreateContext()
-    -- Create a new table that inherits from the Context blueprint via setmetatable.
+--- Creates an isolated UI context instance for constructing and managing interface elements.
+--- @param customStyles table|nil Optional custom style tokens overriding default theme.
+--- @return table uiContext The newly allocated Context instance.
+function lib:createContext(customStyles)
     local uiContext = setmetatable({
-        -- Link the globally defined default color and font palettes.
-        styles = lib.DefaultStyles,
-        -- Placeholder for the dynamic positioning cursor engine.
-        layoutModel = nil
+        styles = customStyles or lib.defaultStyles or lib.DefaultStyles,
+        layoutModel = nil,
+        pools = nil
     }, Context)
 
-    -- If the LayoutModel class script has loaded, instantiate a new layout engine linked directly to this UI context.
     if lib.LayoutModel then
         uiContext.layoutModel = lib.LayoutModel:new(uiContext)
     end
-    
+
     return uiContext
 end
+
+lib.CreateContext = lib.createContext
+
+-------------------------------------------------------------------------------
+-- 3. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for extending the core library lifecycle and context factory.
+--
+-- How to expand:
+-- 1. Custom Theme Injection:
+--    Pass a custom table matching the `defaultStyles` schema into `createContext(customStyles)`
+--    to theme an addon independently without mutating global defaults.
+-- 2. Global Plugin Methods:
+--    Attach new factory methods directly to `Context` (e.g. `function Context:createCustomWidget(options)`)
+--    in external files or plugins; all context instances immediately inherit them via `__index`.
+-- 3. Context Lifecycle Hooks:
+--    Additional context-level teardown (e.g. `uiContext:destroy()`) can be registered to clear
+--    allocated pools and disconnect registered layout models.
+-------------------------------------------------------------------------------

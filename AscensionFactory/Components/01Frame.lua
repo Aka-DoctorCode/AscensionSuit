@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Project: AscensionSuit
+-- Project: AscensionFactory
 -- Author: Aka-DoctorCode
 -- File: MainFrame.lua
 -------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ function Context:createMainFrame(options)
     -- Request a new base 'Frame' element from the FrameworkPool.
     -- "Frame": The type of UI object being requested (a standard container window).
     -- _G.UIParent: The global WoW UI parent, meaning this frame attaches directly to the main screen.
-    local frame = self:AcquireElement("Frame", _G.UIParent,
+    local frame = self:acquireElement("Frame", _G.UIParent,
     {
         anchorPoint = options.anchor or "CENTER",
         width = options.width,
@@ -50,6 +50,7 @@ function Context:createMainFrame(options)
     -- _G is the global variable table in Lua. By setting _G[name], we make the frame accessible anywhere.
     assert(options.name, "options.name required for frame")
     _G[options.name] = frame
+    frame.globalName = options.name
 
     -- Apply explicit sizing (width and height in pixels).
     frame:SetSize(options.width or 860, options.height or 500)
@@ -70,7 +71,7 @@ function Context:createMainFrame(options)
         border:SetAllPoints(frame)
         frame.border = border
     end
-    -- unpack() takes the color array {R, G, B, A} and expands it into 4 separate arguments for SetColorTexture.
+    frame.border:Show()
     frame.border:SetColorTexture(unpack(styles.colors.border))
     -- Create and color the inner background texture.
     if not frame.background then
@@ -97,14 +98,52 @@ function Context:createMainFrame(options)
         background:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2, 2)
         frame.background = background
     end
-    -- unpack() takes the color array {R, G, B, A} and expands it into 4 separate arguments for SetColorTexture.
+    frame.background:Show()
     frame.background:SetColorTexture(unpack(styles.colors.background))
+
+    -- 2.3 CLOSE BUTTON
+    if options.showCloseButton ~= false and self.createIconButton then
+        local closeButton = self:createIconButton({
+            parent = frame,
+            name = options.name and (options.name .. "CloseButton"),
+            iconType = "close",
+            size = options.closeButtonSize or 24,
+            point = "TOPRIGHT",
+            relativeTo = frame,
+            relativePoint = "TOPRIGHT",
+            xOffset = options.closeButtonXOffset or -8,
+            yOffset = options.closeButtonYOffset or -8,
+            onClick = function()
+                if options.onClose then
+                    options.onClose(frame)
+                else
+                    frame:Hide()
+                end
+            end
+        })
+        frame.closeButton = closeButton
+    end
+
     -- Attach dragging and closing behaviors if UX module is available
     if ux then
-        ux:makeMovable(frame)
-        ux:makeClosableWithEscape(frame)
+        ux:makeMovable(frame, options)
+        ux:makeClosableWithEscape(frame, options)
     end
     -- Return the fully constructed frame object
     return frame
 end
+
+-------------------------------------------------------------------------------
+-- 3. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for custom window titles, status bars, and window minimization.
+--
+-- How to expand:
+-- 1. Integrated Title Bar:
+--    Attach an icon button for minimize/maximize alongside the close button, and anchor a header label
+--    at `TOPLEFT` with `options.title` to form a full titlebar.
+-- 2. Bottom Status Bar:
+--    Add `options.showStatusBar` to anchor a bottom sub-frame with version number and status indicator icons.
+-- 3. Resizable Main Frames:
+--    Pass `options.resizable = true` to automatically invoke `ux:makeResizable(frame, minW, minH)`.
+-------------------------------------------------------------------------------
 

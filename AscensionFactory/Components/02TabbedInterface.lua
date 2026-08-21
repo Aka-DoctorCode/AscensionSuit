@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Project: AscensionSuit
+-- Project: AscensionFactory
 -- Author: Aka-DoctorCode
 -- File: TabbedInterface.lua
 -------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ function Context:createTabbedInterface(options)
     -- sidebar (table): The allocated frame representing the sidebar container, with textures applied.
     -------------------------------------------------------------------------------
     -- Acquire a "Frame" element from the pool to act as the sidebar container.
-    local sidebar = self:AcquireElement("Frame", parent, {})
+    local sidebar = self:acquireElement("Frame", parent, {})
     sidebar:SetWidth(160) -- Fixed width for the sidebar
     
     -- Anchor sidebar to the left side of the parent window.
@@ -122,7 +122,7 @@ function Context:createTabbedInterface(options)
     -- Helper function to generate an individual tab button
     local function sidebarButton(options)
         -- Acquire a "Button" element, which has built-in mouse interaction events
-        local button = self:AcquireElement("Button", sidebar, {})
+        local button = self:acquireElement("Button", sidebar, {})
         button:SetHeight(22)
         
         layout:anchorElement(button, 0, 4)
@@ -144,7 +144,7 @@ function Context:createTabbedInterface(options)
         tabLabel:SetPoint("LEFT", button, "LEFT", 10, 0)
 
         -- Create a colored accent bar on the left edge indicating active selection
-        local accent = self:AcquireElement("Texture", button, { drawLayer = "OVERLAY" })
+        local accent = self:acquireElement("Texture", button, { drawLayer = "OVERLAY" })
         accent:SetWidth(8)
         accent:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
         accent:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 0, 0)
@@ -153,20 +153,21 @@ function Context:createTabbedInterface(options)
         button.accent = accent
 
         -- Register interactive hover and click states.
-        -- When the button is clicked, execute the provided callback.
         button:SetScript("OnClick", options.onClick)
-        -- OnEnter fires when the mouse moves over the button
-        button:SetScript("OnEnter", function()
-            if activeTab ~= options.index then
-                button.background:SetColorTexture(unpack(styles.colors.primaryHover))
-            end
-        end)
-        -- OnLeave fires when the mouse moves off the button
-        button:SetScript("OnLeave", function()
-            if activeTab ~= options.index then
-                button.background:SetColorTexture(0, 0, 0, 0) -- Revert to transparent
-            end
-        end)
+
+        if lib.UX and lib.UX.makeHoverable then
+            lib.UX:makeHoverable(button, {
+                onStateChange = function(self, state)
+                    if activeTab ~= options.index then
+                        if state == "hover" then
+                            button.background:SetColorTexture(unpack(styles.colors.primaryHover))
+                        else
+                            button.background:SetColorTexture(0, 0, 0, 0)
+                        end
+                    end
+                end
+            })
+        end
 
         return button
     end
@@ -174,7 +175,7 @@ function Context:createTabbedInterface(options)
     -- Generate panels and buttons for each provided tab. ipairs iterates sequentially.
     for tabIndex, tabName in ipairs(options.tabs) do
         -- Create corresponding content panel. "Frame" is a standard invisible container.
-        local panel = self:AcquireElement("Frame", parent, {})
+        local panel = self:acquireElement("Frame", parent, {})
         -- Anchor panel's left side to the sidebar's right side, plus 10 pixels padding.
         panel:SetPoint("TOPLEFT", sidebar, "TOPRIGHT", 10, 0)
         panel:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -10, 8)
@@ -209,3 +210,18 @@ function Context:createTabbedInterface(options)
         panels = panels
     }
 end
+
+-------------------------------------------------------------------------------
+-- 3. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for top horizontal tabs, badge notification counts, and lazy-loading panels.
+--
+-- How to expand:
+-- 1. Horizontal Tab Bar Orientation:
+--    Add `options.orientation = "TOP"` support by anchoring tab buttons horizontally along the top edge
+--    of the container using `SetPoint("LEFT", prevButton, "RIGHT", gap, 0)`.
+-- 2. Notification Badges:
+--    Attach small numeric bubble indicators (e.g. unread count or alert indicator) onto individual tab buttons.
+-- 3. Lazy Panel Initializer:
+--    Support passing functions in `options.tabs = { { name = "General", render = function(panel) ... end } }`
+--    to only construct child widgets when a tab is clicked for the first time.
+-------------------------------------------------------------------------------

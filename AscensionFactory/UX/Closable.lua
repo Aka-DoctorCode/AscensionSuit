@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Project: AscensionSuit
+-- Project: AscensionFactory
 -- Author: Aka-DoctorCode
 -- File: Closable.lua
 -------------------------------------------------------------------------------
@@ -7,6 +7,11 @@
 
 -------------------------------------------------------------------------------
 -- 1. INITIALIZATION
+-- Objective: Initialize UX namespace and link to global AscensionFactory library.
+-- Variables:
+-- MAJOR: Namespace identifier for addon library.
+-- lib: Global AscensionFactory library object.
+-- UX: Namespace table for UX helper functions.
 -------------------------------------------------------------------------------
 local MAJOR = "AscensionFactory"
 local lib = LibStub:GetLibrary(MAJOR)
@@ -17,44 +22,85 @@ lib.UX = UX
 
 -------------------------------------------------------------------------------
 -- 2. ESCAPE KEY LOGIC
+-- Objective: Configure frame to hide when user press Escape key.
+-- Variables:
+-- frame: Frame UI object configured as closable.
 -------------------------------------------------------------------------------
---- Configures a frame to be hidable when the user presses the Escape key.
-function UX:makeClosableWithEscape(frame)
+--- Configures a frame to be hidable when user presses Escape key, with optional pool release on hide.
+function UX:makeClosableWithEscape(frame, config)
     if not frame then return end
+    config = config or {}
     
-    local name = frame:GetName()
-    if name and UISpecialFrames then
-        -- Register with Blizzard's UISpecialFrames if named.
-        -- UISpecialFrames is a global table built into WoW. Frames added here automatically close when Escape is pressed.
-        _G[name] = frame
-        -- tinsert is a standard Lua function that adds an item to an array.
-        tinsert(UISpecialFrames, name)
-    else
-        -- Ensure that when reopening the interface, keyboard inputs flow correctly to the game world.
-        -- HookScript adds a function to run whenever the "OnShow" event triggers, without overwriting existing scripts.
-        -- HookScript args:
-        -- 1: "OnShow" (event script handler name)
-        -- 2: function (callback when shown)
-        frame:HookScript("OnShow", function(self)
-            -- SetPropagateKeyboardInput args:
-            -- 1: true (allow keyboard input to pass through to game)
-            self:SetPropagateKeyboardInput(true)
-        end)
-
-        frame:SetPropagateKeyboardInput(true)
+    if not frame.isClosableHooked then
+        frame.isClosableHooked = true
         
-        -- SetScript args:
-        -- 1: "OnKeyDown" (event script handler name)
-        -- 2: function (callback when key is pressed)
-        frame:SetScript("OnKeyDown", function(self, key)
-            if key == "ESCAPE" then
-                -- Consume the Escape key (propagate=false) so the main game menu doesn't also pop up.
-                self:SetPropagateKeyboardInput(false)
-                self:Hide() -- Close the frame
-            else
-                -- Pass other keys through to the game natively.
-                self:SetPropagateKeyboardInput(true)
+        local name = frame:GetName()
+        if name and UISpecialFrames then
+            _G[name] = frame
+            tinsert(UISpecialFrames, name)
+        else
+            frame:HookScript("OnShow", function(self)
+                if self.SetKeyboardEnabled then
+                    self:SetKeyboardEnabled(true)
+                elseif self.EnableKeyboard then
+                    self:EnableKeyboard(true)
+                end
+                if self.SetPropagateKeyboardInput then
+                    self:SetPropagateKeyboardInput(true)
+                end
+            end)
+
+            if frame.SetKeyboardEnabled then
+                frame:SetKeyboardEnabled(true)
+            elseif frame.EnableKeyboard then
+                frame:EnableKeyboard(true)
             end
+            if frame.SetPropagateKeyboardInput then
+                frame:SetPropagateKeyboardInput(true)
+            end
+            
+            frame:SetScript("OnKeyDown", function(self, key)
+                if key == "ESCAPE" then
+                    if self.SetPropagateKeyboardInput then self:SetPropagateKeyboardInput(false) end
+                    self:Hide()
+                else
+                    if self.SetPropagateKeyboardInput then self:SetPropagateKeyboardInput(true) end
+                end
+            end)
+        end
+
+        frame:HookScript("OnHide", function(self)
+            local shouldRelease = config.autoReleaseOnHide or config.releaseOnHide or self.autoReleaseOnHide or self.releaseOnHide
+            if not shouldRelease then return end
+            if self.isReleasing then return end
+            self.isReleasing = true
+            
+            if self.globalName then
+                _G[self.globalName] = nil
+                self.globalName = nil
+            end
+            
+            if self.uiContext and self.uiContext.releaseElementAndChildren then
+                self.uiContext:releaseElementAndChildren(self)
+            end
+            
+            self.isReleasing = nil
         end)
     end
 end
+
+-------------------------------------------------------------------------------
+-- 3. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for custom escape behaviors, close confirmation dialogs, and lifecycle management.
+--
+-- How to expand:
+-- 1. Close Confirmation Dialogs:
+--    Intercept the escape press before calling `self:Hide()` by adding a `config.onCloseRequest`
+--    callback that prompts the user with a dialog button confirmation before closing.
+-- 2. Lifecycle Cleanup:
+--    Set `config.releaseOnHide = true` or `frame.releaseOnHide = true` on ephemeral popup frames
+--    to automatically return the frame and all child regions to the memory pool upon closing.
+-- 3. Keyboard Input Propagation:
+--    Toggle `frame:SetPropagateKeyboardInput(true)` to pass non-escape keys through to the game engine
+--    allowing character movement while the UI window is open.
+-------------------------------------------------------------------------------

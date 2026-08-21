@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- Project: AscensionFactory
--- Author: Antigravity
+-- Author: Aka-DoctorCode
 -- File: Toggle.lua
 -------------------------------------------------------------------------------
 ---@diagnostic disable: undefined-global, undefined-field, inject-field
@@ -36,17 +36,29 @@ function Context:createToggle(options)
     local parent = options.parent or UIParent
     local height = options.height or 24
     local width = options.width or 52
+    local padding = options.padding or 2
     
     -- Base mechanical interaction layer acquisition.
     -- Pulls a standard "Button" from pool. A button is used because it natively 
     -- captures OnClick, OnEnter, OnLeave mouse events from the WoW engine.
-    local toggle = self:AcquireElement("Button", parent, {
+    local toggle = self:acquireElement("Button", parent, {
         width = width,
         height = height
     })
     
     if options.name then
         _G[options.name] = toggle
+    end
+
+    if options.point or options.anchorPoint or options.xOffset or options.yOffset then
+        toggle:ClearAllPoints()
+        toggle:SetPoint(
+            options.point or options.anchorPoint or "TOPLEFT",
+            options.relativeTo or parent,
+            options.relativePoint or options.point or options.anchorPoint or "TOPLEFT",
+            options.xOffset or 0,
+            options.yOffset or 0
+        )
     end
 
     -- Maintain internal toggled state.
@@ -57,11 +69,13 @@ function Context:createToggle(options)
     end
     
     -- Layer -2: Outer Framing Border Box explicitly created.
-    -- "BACKGROUND", nil, -2 draws this texture at the very bottom sub-layer.
-    local border = toggle:CreateTexture(nil, "BACKGROUND", nil, -2)
-    border:SetPoint("TOPLEFT", toggle, "TOPLEFT", -1, 1)
-    border:SetPoint("BOTTOMRIGHT", toggle, "BOTTOMRIGHT", 1, -1)
-    toggle.border = border
+    if not toggle.border then
+        local border = toggle:CreateTexture(nil, "BACKGROUND", nil, -2)
+        toggle.border = border
+    end
+    toggle.border:ClearAllPoints()
+    toggle.border:SetPoint("TOPLEFT", toggle, "TOPLEFT", -1, 1)
+    toggle.border:SetPoint("BOTTOMRIGHT", toggle, "BOTTOMRIGHT", 1, -1)
     
     -- Layer -1: Inner Track Background Surface Layer
     if not toggle.track then
@@ -97,67 +111,50 @@ function Context:createToggle(options)
             return
         end
 
-        if not toggle.isOn then
-            toggle.track:SetColorTexture(unpack(styles.colors.background))
-            toggle.border:SetColorTexture(unpack(styles.colors.surfaceLight))
-            toggle.thumb:SetColorTexture(unpack(styles.colors.surfaceHover))
-            return
-        end
+        local state = stateOverride or (toggle:IsMouseOver() and "hover" or "normal")
 
-        local state = stateOverride or "normal"
-        if state == "hover" then
-            toggle.track:SetColorTexture(unpack(styles.colors.surfaceHover))
-            toggle.border:SetColorTexture(unpack(styles.colors.primaryHover))
-            toggle.thumb:SetColorTexture(unpack(styles.colors.white))
-        elseif state == "active" then
-            toggle.track:SetColorTexture(unpack(styles.colors.surfaceDark))
-            toggle.border:SetColorTexture(unpack(styles.colors.primaryActive))
-            toggle.thumb:SetColorTexture(unpack(styles.colors.white))
+        if not toggle.isOn then
+            if state == "hover" then
+                toggle.track:SetColorTexture(unpack(styles.colors.surfaceHover))
+                toggle.border:SetColorTexture(unpack(styles.colors.steelHighlight))
+                toggle.thumb:SetColorTexture(unpack(styles.colors.white))
+            elseif state == "active" then
+                toggle.track:SetColorTexture(unpack(styles.colors.surfaceDark))
+                toggle.border:SetColorTexture(unpack(styles.colors.primaryActive))
+                toggle.thumb:SetColorTexture(unpack(styles.colors.white))
+            else
+                toggle.track:SetColorTexture(unpack(styles.colors.background))
+                toggle.border:SetColorTexture(unpack(styles.colors.surfaceLight))
+                toggle.thumb:SetColorTexture(unpack(styles.colors.surfaceHover))
+            end
         else
-            toggle.track:SetColorTexture(unpack(styles.colors.surfaceLight))
-            toggle.border:SetColorTexture(unpack(styles.colors.surfaceLight))
-            toggle.thumb:SetColorTexture(unpack(styles.colors.white))
+            if state == "hover" then
+                toggle.track:SetColorTexture(unpack(styles.colors.surfaceHover))
+                toggle.border:SetColorTexture(unpack(styles.colors.primaryHover))
+                toggle.thumb:SetColorTexture(unpack(styles.colors.white))
+            elseif state == "active" then
+                toggle.track:SetColorTexture(unpack(styles.colors.surfaceDark))
+                toggle.border:SetColorTexture(unpack(styles.colors.primaryActive))
+                toggle.thumb:SetColorTexture(unpack(styles.colors.white))
+            else
+                toggle.track:SetColorTexture(unpack(styles.colors.surfaceLight))
+                toggle.border:SetColorTexture(unpack(styles.colors.primary))
+                toggle.thumb:SetColorTexture(unpack(styles.colors.white))
+            end
         end
     end
     
     updateAppearance()
     
-    -- Interactive Hover
-    toggle:SetScript("OnEnter", function(self)
-        if not self:IsEnabled() then return end
-        updateAppearance("hover")
-    end)
-    
-    toggle:SetScript("OnLeave", function(self)
-        if not self:IsEnabled() then return end
-        updateAppearance("normal")
-    end)
-
-    toggle:SetScript("OnMouseDown", function(self)
-        if not self:IsEnabled() then return end
-        updateAppearance("active")
-    end)
-    
-    toggle:SetScript("OnMouseUp", function(self)
-        if not self:IsEnabled() then return end
-        if self:IsMouseOver() then
-            updateAppearance("hover")
-        else
-            updateAppearance("normal")
-        end
-    end)
-
-    toggle:SetScript("OnEnable", function(self)
-        if self:IsMouseOver() then
-            updateAppearance("hover")
-        else
-            updateAppearance("normal")
-        end
-    end)
-    
-    toggle:SetScript("OnDisable", function(self)
-        updateAppearance()
-    end)
+    -- Interactive Hover Setup
+    if lib.UX and lib.UX.makeHoverable then
+        lib.UX:makeHoverable(toggle, {
+            tooltip = options.tooltip,
+            onStateChange = function(self, state)
+                updateAppearance(state)
+            end
+        })
+    end
     
     -- Execute toggle state swap on click.
     -- When the button registers a click, flip the boolean `isOn` state.
@@ -198,3 +195,17 @@ function Context:createToggle(options)
     
     return toggle
 end
+
+-------------------------------------------------------------------------------
+-- 3. EXTENSION & EXPANSION NOTES
+-- Objective: Guidelines for toggle slide animations, side text labels, and tri-state switches.
+--
+-- How to expand:
+-- 1. Smooth Slide Animation:
+--    Add an `OnUpdate` interpolation ticker or Blizzard AnimationGroup to animate the thumb position
+--    smoothly from left to right on state change.
+-- 2. Integrated Inline Label:
+--    Support `options.text` to anchor an adjacent label on the left or right of the toggle track automatically.
+-- 3. Tri-State Mode:
+--    Add support for intermediate/indeterminate states (OFF / AUTO / ON) by anchoring the thumb to center position.
+-------------------------------------------------------------------------------
