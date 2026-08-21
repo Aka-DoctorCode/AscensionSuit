@@ -192,16 +192,27 @@ local frame = uiContext:createMainFrame({
 })
 ```
 
-#### Options Table
+#### Options Table (createMainFrame)
 
-- `name` *(string, required)*: Global variable identifier for the frame.
+- `name` *(string, required)*: Global variable identifier for the frame registered in `_G`.
 - `width` *(number, default: 860)*: Window width in pixels.
 - `height` *(number, default: 500)*: Window height in pixels.
 - `anchor` *(string, default: "CENTER")*: Screen anchor point.
 - `strata` *(string, default: "DIALOG")*: Frame strata layer.
 - `showCloseButton` *(boolean, default: true)*: Renders top-right close icon button.
+- `closeButtonSize` *(number, default: 24)*: Pixel dimensions of close button.
+- `closeButtonXOffset` *(number, default: -8)*: Horizontal offset for close button.
+- `closeButtonYOffset` *(number, default: -8)*: Vertical offset for close button.
 - `onClose` *(function)*: Callback executed when close button is clicked.
 - `releaseOnHide` *(boolean, default: false)*: Automatically recycles frame to pool when hidden.
+
+#### Return Table (createMainFrame)
+
+- `frame` *(Frame)*: Configured top-level application window frame with attached properties:
+  - `frame.globalName` *(string)*: Global identifier registered in `_G`.
+  - `frame.border` *(Texture)*: Outer border texture layer (`BACKGROUND`, -2).
+  - `frame.background` *(Texture)*: Inner surface background texture layer (`BACKGROUND`, -1).
+  - `frame.closeButton` *(Button, optional)*: Top-right icon button instance (if `showCloseButton ~= false`).
 
 ---
 
@@ -223,11 +234,18 @@ local generalPanel = tabSystem.panels[1]
 local combatPanel = tabSystem.panels[2]
 ```
 
-#### Return Table
+#### Options Table (createTabbedInterface)
 
-- `sidebar`: The left vertical navigation container frame.
-- `tabs`: Array of tab button frames.
-- `panels`: Array of content container frames (indexed 1..N).
+- `parent` *(Frame, required)*: Parent frame hosting the navigation sidebar and content panels.
+- `startY` *(number, optional)*: Top offset in pixels where the sidebar begins positioning.
+- `initialIndex` *(number, optional)*: 1-based index of the tab selected by default upon creation.
+- `tabs` *(table of strings, required)*: Ordered list of tab names (e.g. `{"General", "Combat", "Profiles"}`).
+
+#### Return Table (createTabbedInterface)
+
+- `sidebar` *(Frame)*: Left vertical container hosting tab navigation buttons.
+- `tabs` *(table of Button)*: Array of interactive tab button frames (`tabs[1]..tabs[N]`). Handles click events, hover states, and active accent indicators.
+- `panels` *(table of Frame)*: Array of content container frames (`panels[1]..panels[N]`) matching tab indices 1:1. Use each panel as `parent` when creating sub-controls (checkboxes, sliders, inputs). Clicking a tab automatically calls `:Show()` on the matching panel and `:Hide()` on all other panels.
 
 ---
 
@@ -246,17 +264,126 @@ local leftCol, rightCol = uiContext:createTwoColumns({
 })
 ```
 
+#### Options Table (createTwoColumns)
+
+- `parent` *(Frame, default: UIParent)*: Parent frame hosting the two columns.
+- `yOffset` *(number, default: 0)*: Top offset in pixels relative to parent.
+- `height` *(number, optional)*: Fixed height for both columns in pixels (defaults to stretching to parent bottom).
+- `name` *(string, default: "TwoColumnLayout")*: Base name for registering `_G[name .. "Left"]` and `_G[name .. "Right"]`.
+- `backgroundColor` *(table of RGBA, optional)*: Background color for both columns.
+- `leftBackgroundColor` *(table of RGBA, optional)*: Background color override for left column.
+- `rightBackgroundColor` *(table of RGBA, optional)*: Background color override for right column.
+
+#### Return Table (createTwoColumns)
+
+- `leftColumn` *(Frame)*: Left-half container frame with 5px margin.
+- `rightColumn` *(Frame)*: Right-half container frame with 5px margin.
+
 ---
 
 ### Typography
 
 [04Text.lua](file:///Applications/World%20of%20Warcraft/_retail_/Interface/AddOns/AscensionFactory/Components/04Text.lua)
 
+#### 1. Header (createHeader)
+
 ```lua
-local header, nextY = uiContext:createHeader({ parent = panel, text = "Combat Options", fontSize = 24 })
-local label, nextY  = uiContext:createLabel({ parent = panel, text = "Targeting Mode", fontSize = 16, yOffset = nextY })
-local para, nextY   = uiContext:createParagraph({ parent = panel, text = "Long descriptive text...", yOffset = nextY })
+local header, nextY = uiContext:createHeader({
+    parent = panel,
+    text = "Combat Options",
+    fontSize = 24,
+    spaceBelow = 10
+})
 ```
+
+#### Options Table (createHeader)
+
+- `parent` *(Frame, default: UIParent)*: Parent frame hosting the header text.
+- `text` *(string, required)*: Header string content.
+- `fontSize` *(number, default: 24)*: Font point size.
+- `fontFamily` *(string, default: "fonts/frizqt___cyr.ttf")*: Font file path.
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `relativeTo` *(Frame, default: parent)*: Target frame to anchor against.
+- `relativePoint` *(string, default: "TOPLEFT")*: Relative anchor point on target frame.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `width` *(number, optional)*: Explicit text width constraint.
+- `rightOffset` *(number, optional)*: Right padding offset to anchor against parent right edge.
+- `spaceBelow` *(number, default: 0)*: Extra spacing in pixels added below header when calculating next Y offset.
+- `shadowColor` *(table of RGBA, default: styles.colors.surfaceDark)*: Drop shadow color.
+- `wordWrap` *(boolean, optional)*: Enables or disables word wrapping.
+- `justifyH` *(string, optional)*: Horizontal text alignment (`"LEFT"`, `"CENTER"`, `"RIGHT"`).
+
+#### Return Table (createHeader)
+
+- `header` *(FontString)*: Configured header text FontString instance.
+- `nextY` *(number)*: Computed Y coordinate offset positioned directly below header (including `spaceBelow`).
+
+#### 2. Label (createLabel)
+
+```lua
+local label, nextY = uiContext:createLabel({
+    parent = panel,
+    text = "Targeting Mode",
+    fontSize = 16,
+    yOffset = nextY
+})
+```
+
+#### Options Table (createLabel)
+
+- `parent` *(Frame, default: UIParent)*: Parent frame hosting the label.
+- `text` *(string, required)*: Label string content.
+- `fontSize` *(number, default: 18)*: Font point size.
+- `fontFamily` *(string, default: "fonts/frizqt___cyr.ttf")*: Font file path.
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `relativeTo` *(Frame, default: parent)*: Target frame to anchor against.
+- `relativePoint` *(string, default: "TOPLEFT")*: Relative anchor point on target frame.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `width` *(number, optional)*: Explicit text width constraint.
+- `rightOffset` *(number, optional)*: Right padding offset to anchor against parent right edge.
+- `spaceBelow` *(number, default: 0)*: Extra spacing in pixels added below label when calculating next Y offset.
+- `shadowColor` *(table of RGBA, default: styles.colors.black)*: Drop shadow color.
+- `wordWrap` *(boolean, optional)*: Enables or disables word wrapping.
+- `justifyH` *(string, optional)*: Horizontal text alignment (`"LEFT"`, `"CENTER"`, `"RIGHT"`).
+
+#### Return Table (createLabel)
+
+- `label` *(FontString)*: Configured single-line label FontString instance.
+- `nextY` *(number)*: Computed Y coordinate offset positioned directly below label (including `spaceBelow`).
+
+#### 3. Paragraph (createParagraph)
+
+```lua
+local para, nextY = uiContext:createParagraph({
+    parent = panel,
+    text = "Long descriptive text explaining feature details...",
+    fontSize = 12,
+    yOffset = nextY
+})
+```
+
+#### Options Table (createParagraph)
+
+- `parent` *(Frame, default: UIParent)*: Parent frame hosting the paragraph.
+- `text` *(string, required)*: Multi-line string content.
+- `fontSize` *(number, default: 12)*: Font point size.
+- `fontFamily` *(string, default: "fonts/frizqt___cyr.ttf")*: Font file path.
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `relativeTo` *(Frame, default: parent)*: Target frame to anchor against.
+- `relativePoint` *(string, default: "TOPLEFT")*: Relative anchor point on target frame.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `width` *(number, optional)*: Explicit width constraint.
+- `rightOffset` *(number, default: -10 or -xOffset)*: Right padding offset relative to parent.
+- `spaceBelow` *(number, default: 0)*: Extra spacing in pixels added below paragraph when calculating next Y offset.
+- `justifyH` *(string, default: "LEFT")*: Horizontal text alignment (`"LEFT"`, `"CENTER"`, `"RIGHT"`).
+
+#### Return Table (createParagraph)
+
+- `paragraph` *(FontString)*: Configured multi-line wrapped FontString instance.
+- `nextY` *(number)*: Computed Y coordinate offset positioned directly below wrapped paragraph (including `spaceBelow`).
 
 ---
 
@@ -264,7 +391,7 @@ local para, nextY   = uiContext:createParagraph({ parent = panel, text = "Long d
 
 [05Button.lua](file:///Applications/World%20of%20Warcraft/_retail_/Interface/AddOns/AscensionFactory/Components/05Button.lua)
 
-#### 1. Standard Button
+#### 1. Standard Button (createButton)
 
 ```lua
 local btn = uiContext:createButton({
@@ -276,11 +403,37 @@ local btn = uiContext:createButton({
 })
 ```
 
-#### 2. Icon Button
+#### Options Table (createButton)
+
+- `parent` *(Frame, default: UIParent)*: Parent container frame.
+- `name` *(string, optional)*: Global variable identifier registered in `_G`.
+- `text` *(string, default: "")*: Button label text.
+- `width` *(number, default: 60)*: Button width in pixels.
+- `height` *(number, default: 25)*: Button height in pixels.
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `relativeTo` *(Frame, default: parent)*: Target frame to anchor against.
+- `relativePoint` *(string, default: "TOPLEFT")*: Relative anchor point on target frame.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `onClick` *(function)*: Click event callback handler.
+- `clickTypes` *(table of strings, default: {"AnyUp"})*: Registered mouse click events (e.g. `{"LeftButtonUp", "RightButtonUp"}`).
+- `tooltip` *(table | string, optional)*: Tooltip description text or table configuration.
+- `trackColors` *(table, optional)*: Color map table for inner track (`normal`, `hover`, `active`, `disabled`).
+- `borderColors` *(table, optional)*: Color map table for outer border (`normal`, `hover`, `active`, `disabled`).
+- `labelColors` *(table, optional)*: Color map table for text label (`normal`, `hover`, `active`, `disabled`).
+
+#### Return Table (createButton)
+
+- `button` *(Button)*: Interactive button frame with attached sub-elements:
+  - `button.border` *(Texture)*: Outer border texture layer.
+  - `button.track` *(Texture)*: Inner surface track texture layer.
+  - `button:GetFontString()` *(FontString)*: Centered text label.
+
+#### 2. Icon Button (createIconButton)
 
 `iconType`: `"close"`, `"minus"`, `"plus"`, `"minimize"`, `"maximize"`, `"arrowdown"`.
-```lua
 
+```lua
 local iconBtn = uiContext:createIconButton({
     parent = panel,
     iconType = "plus",
@@ -289,7 +442,26 @@ local iconBtn = uiContext:createIconButton({
 })
 ```
 
-#### 3. Dialog Button
+#### Options Table (createIconButton)
+
+- `parent` *(Frame, default: UIParent)*: Parent container frame.
+- `name` *(string, optional)*: Global variable identifier registered in `_G`.
+- `size` *(number, default: 24)*: Square button width and height in pixels.
+- `iconType` *(string, default: "close")*: Geometric shape (`"close"`, `"minus"`, `"plus"`, `"minimize"`, `"maximize"`, `"arrowdown"`).
+- `iconColor` *(table of RGBA, default: styles.colors.white)*: Icon drawing color tint.
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `relativeTo` *(Frame, default: parent)*: Target frame to anchor against.
+- `relativePoint` *(string, default: "TOPLEFT")*: Relative anchor point on target frame.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `onClick` *(function)*: Click event callback handler.
+- `tooltip` *(table | string, optional)*: Tooltip description text or table configuration.
+
+#### Return Table (createIconButton)
+
+- `button` *(Button)*: Square icon button frame with dynamically rendered geometric vector icon textures on layer `ARTWORK`.
+
+#### 3. Dialog Button (createDialogButton)
 
 `variant`: `"accept"` (Green Neon), `"cancel"` (Red Neon), `"neutral"` (Orange Neon).
 
@@ -298,9 +470,27 @@ local acceptBtn = uiContext:createDialogButton({
     parent = panel,
     variant = "accept",
     text = "Confirm",
-    onClick = function() ... end
+    onClick = function() print("Confirmed") end
 })
 ```
+
+#### Options Table (createDialogButton)
+
+- `parent` *(Frame, default: UIParent)*: Parent container frame.
+- `name` *(string, optional)*: Global variable identifier registered in `_G`.
+- `variant` *(string, default: "neutral")*: Semantic style variant (`"accept"`, `"cancel"`, `"neutral"`).
+- `text` *(string, optional)*: Button text (defaults to `"Accept"`, `"Cancel"`, or `"Button"` depending on variant).
+- `width` *(number, default: 90)*: Base width in pixels (auto-expands for longer text).
+- `height` *(number, default: 26)*: Height in pixels.
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `onClick` *(function)*: Click event callback handler.
+- `tooltip` *(table | string, optional)*: Tooltip description text or table configuration.
+
+#### Return Table (createDialogButton)
+
+- `button` *(Button)*: Pre-styled action button with neon border and label color palette matching semantic variant.
 
 ---
 
@@ -321,7 +511,31 @@ local toggle = uiContext:createToggle({
 })
 ```
 
-#### Public Instance Methods
+#### Options Table (createToggle)
+
+- `parent` *(Frame, default: UIParent)*: Parent container frame.
+- `name` *(string, optional)*: Global variable identifier registered in `_G`.
+- `width` *(number, default: 52)*: Switch width in pixels.
+- `height` *(number, default: 24)*: Switch height in pixels.
+- `padding` *(number, default: 2)*: Inset padding between sliding thumb and track border.
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `getter` *(function, optional)*: Function returning initial boolean state (`true` / `false`).
+- `setter` *(function(state), optional)*: Callback invoked with new boolean state when toggled.
+- `onClick` *(function(self, state), optional)*: Additional click callback handler.
+- `tooltip` *(table | string, optional)*: Tooltip description text or table configuration.
+- `scripts` *(table, optional)*: Extra script handlers to set or hook on the frame.
+
+#### Return Table (createToggle)
+
+- `toggle` *(Button)*: Interactive toggle switch frame with attached properties:
+  - `toggle.border` *(Texture)*: Outer border box (`BACKGROUND`, -2).
+  - `toggle.track` *(Texture)*: Inner surface track (`BACKGROUND`, -1).
+  - `toggle.thumb` *(Texture)*: Sliding thumb block (`ARTWORK`).
+  - `toggle.isOn` *(boolean)*: Current boolean state.
+
+#### Public Instance Methods (Toggle)
 
 - `toggle:setState(state)`: Updates boolean state and slides thumb.
 
@@ -342,7 +556,33 @@ local checkbox = uiContext:createCheckbox({
 })
 ```
 
-#### Checkbox Public Instance Methods
+#### Options Table (createCheckbox)
+
+- `parent` *(Frame, default: UIParent)*: Parent container frame.
+- `name` *(string, optional)*: Global variable identifier registered in `_G`.
+- `text` *(string, default: "")*: Checkbox label text displayed beside box.
+- `checked` *(boolean, default: false)*: Initial checked state (used if no `getter` provided).
+- `boxSize` / `size` *(number, default: buttonHeight)*: Dimensions of square check box in pixels.
+- `width` *(number, optional)*: Total row width in pixels (defaults to auto-fitting box + label width).
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `getter` *(function, optional)*: Function returning current boolean state.
+- `setter` *(function(val), optional)*: Callback invoked with updated boolean state.
+- `onClick` *(function(self, checked, buttonName, down), optional)*: Additional click handler.
+- `tooltip` *(table | string, optional)*: Tooltip description text or table configuration.
+
+#### Return Table (createCheckbox)
+
+- `checkbox` *(Button)*: Interactive row button containing box border, track, vector checkmark, and label:
+  - `checkbox.boxBorder` *(Texture)*: Square border texture.
+  - `checkbox.boxTrack` *(Texture)*: Inner box background texture.
+  - `checkbox.checkShortLeg` *(Texture)*: 45-degree vector checkmark short leg texture (`ARTWORK`).
+  - `checkbox.checkLongLeg` *(Texture)*: 45-degree vector checkmark long leg texture (`ARTWORK`).
+  - `checkbox.label` *(FontString)*: Attached text label.
+  - `checkbox.isChecked` *(boolean)*: Current checked state.
+
+#### Public Instance Methods (Checkbox)
 
 - `checkbox:getChecked()` -> `boolean`
 - `checkbox:setChecked(isChecked)`
@@ -368,7 +608,43 @@ local input = uiContext:createInputField({
 })
 ```
 
-#### InputField Public Instance Methods
+#### Options Table (createInputField)
+
+- `parent` *(Frame, default: UIParent)*: Parent container frame.
+- `name` *(string, optional)*: Global variable identifier registered in `_G`.
+- `width` *(number, required)*: Container pixel width.
+- `height` *(number, required)*: Container pixel height.
+- `text` *(string, default: "")*: Initial text string.
+- `placeholder` *(string, default: "")*: Ghost placeholder text displayed when empty and unfocused.
+- `multiLine` *(boolean, default: false)*: Enables multi-line text editing with automatic wrapping.
+- `showClear` / `clearButton` *(boolean, default: false)*: Renders clear icon button on right edge (single-line only).
+- `showScrollbar` *(boolean, default: false)*: Enables vertical scrollbar on right edge (multi-line only).
+- `numeric` *(boolean, default: false)*: Restricts input characters strictly to numbers.
+- `password` *(boolean, default: false)*: Masks entered characters with dots.
+- `autoFocus` *(boolean, default: false)*: Automatically captures keyboard focus upon creation.
+- `maxLetters` / `maxLength` *(number, default: 0)*: Maximum character length (0 for unlimited).
+- `font` *(FontObject | string, default: "GameFontHighlight")*: Font object for text.
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `getter` *(function, optional)*: Function returning initial text string.
+- `setter` *(function(text), optional)*: Callback invoked whenever text changes by user input.
+- `onTextChanged` *(function(container, text, isUserInput), optional)*: Text change handler.
+- `onEnterPressed` *(function(container, text), optional)*: Enter key pressed handler.
+- `onEscapePressed` *(function(container), optional)*: Escape key pressed handler.
+
+#### Return Table (createInputField)
+
+- `container` *(Frame)*: Outer container frame with embedded widgets and public methods:
+  - `container.border` *(Texture)*: Outer border texture layer.
+  - `container.track` *(Texture)*: Inner surface background layer.
+  - `container.editBox` *(EditBox)*: Underlying native WoW EditBox widget.
+  - `container.placeholder` *(FontString)*: Ghost placeholder FontString.
+  - `container.clearButton` *(Button, optional)*: Clear icon button (if `showClear = true`).
+  - `container.scrollFrame` *(ScrollFrame, optional)*: Parent scroll frame (if `multiLine = true`).
+  - `container.scrollbar` *(Slider, optional)*: Vertical scrollbar slider (if `showScrollbar = true`).
+
+#### Public Instance Methods (InputField)
 
 - `input:getText()` -> `string`
 - `input:setText(newText)`
@@ -406,7 +682,38 @@ local slider = uiContext:createSlider({
 })
 ```
 
-#### Slider & Scrollbar Public Instance Methods
+#### Options Table (createSlider)
+
+- `parent` *(Frame, default: UIParent)*: Parent container frame.
+- `name` *(string, optional)*: Global variable identifier registered in `_G`.
+- `orientation` *(string, required)*: Slider axis orientation (`"HORIZONTAL"` or `"VERTICAL"`).
+- `length` *(number, required)*: Length along primary axis in pixels (`width` for horizontal, `height` for vertical).
+- `thickness` *(number, default: 16 horizontal / 14 vertical)*: Thickness across secondary axis in pixels.
+- `minValue` / `min` *(number, default: 0)*: Minimum allowed value.
+- `maxValue` / `max` *(number, default: 100)*: Maximum allowed value.
+- `step` / `stepSize` *(number, default: 1)*: Discrete step increment snapping.
+- `value` / `defaultValue` *(number, default: minValue)*: Initial numerical value.
+- `showFill` / `fill` *(boolean, default: false)*: Displays colored progress fill bar behind thumb.
+- `fillColor` *(table of RGBA, default: styles.colors.primary)*: Color for progress fill bar.
+- `thumbSize` *(number, default: thickness - 2)*: Pixel dimensions of diamond thumb button.
+- `inverted` *(boolean, default: false)*: Inverts direction of min and max values.
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `getter` *(function, optional)*: Function returning initial numerical value.
+- `setter` *(function(val), optional)*: Callback invoked on value change from user interaction.
+- `onValueChanged` *(function(self, val, isUserInput), optional)*: Value change callback handler.
+
+#### Return Table (createSlider)
+
+- `slider` *(Frame)*: Slider container frame with attached interactive elements:
+  - `slider.border` *(Texture)*: Outer border texture layer.
+  - `slider.track` *(Texture)*: Inner surface track layer.
+  - `slider.fill` *(Texture)*: Progress bar fill texture layer.
+  - `slider.thumb` *(Button)*: Interactive thumb button with rotated 45-degree diamond texture (`slider.thumb.diamond`).
+  - `slider.currentValue` *(number)*: Current numerical value.
+
+#### Public Instance Methods (Slider)
 
 - `slider:getValue()` -> `number`
 - `slider:setValue(val, isSilent, isUserInput)`
@@ -439,7 +746,34 @@ local stepper = uiContext:createStepper({
 })
 ```
 
-#### Stepper Public Instance Methods
+#### Options Table (createStepper)
+
+- `parent` *(Frame, default: UIParent)*: Parent container frame.
+- `name` *(string, optional)*: Global variable identifier registered in `_G`.
+- `width` *(number, required)*: Total stepper width in pixels.
+- `height` *(number, required)*: Total stepper height in pixels (also defines square button size).
+- `inputWidth` *(number, optional)*: Explicit width for middle input field.
+- `minValue` / `min` *(number, default: 0)*: Minimum allowed value.
+- `maxValue` / `max` *(number, default: 100)*: Maximum allowed value.
+- `step` / `stepSize` *(number, default: 1)*: Increment/decrement step amount per click.
+- `value` / `defaultValue` *(number, default: minValue)*: Initial numerical value.
+- `decimals` *(number, optional)*: Decimal precision formatting (auto-detected from step size).
+- `point` / `anchorPoint` *(string, default: "TOPLEFT")*: Frame anchor point.
+- `xOffset` *(number, default: 0)*: Horizontal pixel offset.
+- `yOffset` *(number, default: 0)*: Vertical pixel offset.
+- `getter` *(function, optional)*: Function returning initial numerical value.
+- `setter` *(function(val), optional)*: Callback invoked on value change.
+- `onValueChanged` *(function(self, val, isUserInput), optional)*: Value change callback handler.
+
+#### Return Table (createStepper)
+
+- `stepper` *(Frame)*: Stepper container frame composing minus button, input field, and plus button:
+  - `stepper.minusButton` *(Button)*: Decrement icon button on left edge.
+  - `stepper.plusButton` *(Button)*: Increment icon button on right edge.
+  - `stepper.inputField` *(Frame)*: Direct numeric input field container in center.
+  - `stepper.currentValue` *(number)*: Current numerical value.
+
+#### Public Instance Methods (Stepper)
 
 - `stepper:getValue()` -> `number`
 - `stepper:setValue(val, isSilent, isUserInput)`
