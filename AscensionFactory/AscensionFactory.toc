@@ -1,4 +1,4 @@
-## Interface: 120005
+## Interface: 120105
 ## Title: Ascension Factory
 ## Notes: A library of UI components for creating addons.
 ## Author: Aka-DoctorCode
