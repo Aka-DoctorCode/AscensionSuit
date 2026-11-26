@@ -1,0 +1,23 @@
+<Bindings>
+    <!-- Key bindings (Options > Keybindings > AddOns > WoW Task Manager).
+         The labels are set in Core/Bindings.lua; the actions are global
+         functions defined there too. -->
+    <Binding name="WTM_TOGGLE_WINDOW" header="WOWTASKMANAGER" category="ADDONS">
+        WoWTaskManager_Bind("window")
+    </Binding>
+    <Binding name="WTM_TOGGLE_MONITOR" category="ADDONS">
+        WoWTaskManager_Bind("monitor")
+    </Binding>
+    <Binding name="WTM_TOGGLE_RECORDING" category="ADDONS">
+        WoWTaskManager_Bind("recording")
+    </Binding>
+    <Binding name="WTM_ADD_MARKER" category="ADDONS">
+        WoWTaskManager_Bind("marker")
+    </Binding>
+    <Binding name="WTM_OPEN_INCIDENTS" category="ADDONS">
+        WoWTaskManager_Bind("incidents")
+    </Binding>
+    <Binding name="WTM_OPEN_LOCATIONS" category="ADDONS">
+        WoWTaskManager_Bind("locations")
+    </Binding>
+</Bindings>
