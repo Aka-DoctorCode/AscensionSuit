@@ -1,4 +1,7 @@
-<h1>@project-version@</h1>
-<ul>
-    <li>.toc update</li>
-</ul>
+- Unified Blizzard Settings integration under a single collapsible "Ascension Suit" parent category with a 3-column grid (150x150 logos, TRILINEAR filtering) for Suite Addons and QoL Modules.
+- Added creator logo (150x150) in the top-right header and stripped the "Ascension" prefix from sidebar subcategories and grid labels.
+- Updated IconTexture references across all Ascension Suite .toc files to AkaDoctorCode.jpeg.
+- Updated addon subcategory panels with 2x title/description font sizes, a clean redirect message, and a centered Blizzard UIPanelButtonTemplate ("OPEN SETTINGS", 240x36).
+- Replaced SettingsPanel:Close() with HideUIPanel(SettingsPanel) to prevent ADDON_ACTION_BLOCKED taint errors.
+
+Update for changes to AscensionFactory V02

@@ -1,0 +1,79 @@
+## Interface: 120105
+## Title: |cffffd100Ultima|r Macro Maker
+## Notes: Advanced Graphical Macro Development Environment
+## Notes-deDE: Fortgeschrittener Makro-Editor mit Syntax-Highlighting, Profilverwaltung und intelligenter Optimierung.
+## Author: Satyros
+## Version: 3.6.0
+## SavedVariables: MacroMaker_DB, MacroMaker_GlobalDB, UltimaSuiteDB
+## IconTexture: Interface\MacroFrame\MacroFrame-Icon
+## AddonCompartmentFunc: MacroMaker_OnAddonCompartmentClick
+## Category: Macros
+## Category-enUS: Macros
+## Category-deDE: Makros
+## Category-esES: Macros
+## Category-esMX: Macros
+## Category-frFR: Macros
+## Category-itIT: Macro
+## Category-koKR: 매크로
+## Category-ptBR: Macros
+## Category-ruRU: Макросы
+## Category-zhCN: 宏
+## Category-zhTW: 巨集
+## X-Part-Of: Ultima Suite
+## X-Category: Macro
+
+
+Libs\embeds.xml
+Libs\UltimaBridge.lua
+
+MacroMaker.lua
+
+Locales\Init.lua
+Locales\enUS.lua
+Locales\deDE.lua
+Locales\esES.lua
+Locales\frFR.lua
+Locales\itIT.lua
+Locales\ptBR.lua
+Locales\ruRU.lua
+Locales\koKR.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
+Locales\esMX.lua
+
+Logic\Generator.lua
+Logic\Serializer.lua
+Logic\Validator.lua
+Logic\Optimizer.lua
+Logic\History.lua
+Logic\Interpreter.lua
+Logic\Profiles.lua
+Logic\Translator.lua
+Logic\SmartTemplates.lua
+
+Data\MacroLocales.lua
+Data\IconDB.lua
+
+Data\Library.lua
+
+UI\Notifications.lua
+UI\MainFrame.lua
+UI\Manager.lua
+UI\Manager\MacroList.lua
+UI\Manager\Operations.lua
+UI\ImportExport.lua
+UI\OptionsPanel.lua
+UI\Source.lua
+UI\Builder.lua
+UI\Inspector.lua
+UI\Inspector\ConditionEditor.lua
+UI\Inspector\SequenceBuilder.lua
+UI\Inspector\Library.lua
+UI\Inspector\Wizard.lua
+UI\Inspector\HealthCheck.lua
+UI\Inspector\Announce.lua
+UI\Inspector\DiffViewer.lua
+UI\LivePreview.lua
+UI\Tutorial.lua
+
+

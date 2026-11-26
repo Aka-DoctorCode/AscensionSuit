@@ -561,7 +561,7 @@ lua -- Initialize position storage for an addon module local config = lib:initPo
 
 ***
 
-Register a panel in the standard Interface → AddOns menu. The panel will display a message guiding users to your custom UI.
+Register a subcategory panel in the standard Interface → AddOns menu under the unified **"Ascension Suit"** parent category. The parent hub displays all Suite addons and QoL modules in a 3-column grid (150x150 logos), while each subcategory displays a 2x scaled title/description and a centered Blizzard-style `"OPEN SETTINGS"` button.
 
 lua lib.Integration:registerBlizzardPanel( "MyAddon", -- Unique addon key "My Addon Settings", -- Display name function() -- Called when the "OPEN SETTINGS" button is clicked MyAddonConfigFrame:Show() end )
 

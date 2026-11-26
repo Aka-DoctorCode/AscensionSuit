@@ -1,0 +1,29 @@
+# AI Agent & Assistant Files
+GEMINI.md
+.gemini/
+CLAUDE.md
+.claude/
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Temporary, Backup & Log Files
+*.swp
+*.bak
+*.old
+*.orig
+*.tmp
+*.log
+
+# WoW SavedVariables & Runtime Logs
+SavedVariables/
+
+# Archives & Releases
+*.zip
+*.tar.gz
+*.rar

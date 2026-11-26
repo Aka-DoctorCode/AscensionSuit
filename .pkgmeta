@@ -12,6 +12,8 @@ ignore:
     README.md
     MockUI.lua
     muck.html
+    Futuro
+    Media/ascension-logos
 # externals:
 #   Libs/LibStub:
 #     url: https://repos.wowace.com/wow/libstub/trunk
